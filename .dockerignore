@@ -1,0 +1,15 @@
+.gradle
+.idea
+.vscode
+build
+out
+bin
+*.log
+Dockerfile
+.dockerignore
+.git
+.gitattributes
+.gitignore
+README.md
+HELP.md
+ARCHITECTURE.md
