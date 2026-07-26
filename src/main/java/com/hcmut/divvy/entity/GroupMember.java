@@ -6,7 +6,10 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "group_members")
+@Table(name = "group_members", indexes = {
+    @Index(name = "idx_group_members_group_id", columnList = "group_id"),
+    @Index(name = "idx_group_members_user_id", columnList = "user_id")
+})
 @Getter
 @Setter
 @NoArgsConstructor

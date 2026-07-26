@@ -32,6 +32,7 @@ graph TD
     subgraph Database
         Repositories -->|PostgreSQL| DB[(PostgreSQL Database)]
         Flyway[Flyway Migrations] -->|Schema Versioning| DB
+        MigrationGen[Prisma-Like MigrationGenerator] -->|Diff Entity vs DB| Flyway
     end
 ```
 
@@ -74,17 +75,16 @@ graph TD
 
 ---
 
-## 3. Quản lý Database Schema (Database Migrations)
+## 3. Quản lý Database Schema (Database Migrations - Prisma-Like Workflow)
 
-Hệ thống sử dụng **Flyway** để quản lý lịch sử và đồng bộ hóa cấu trúc cơ sở dữ liệu PostgreSQL. Các file SQL migration được đặt tại thư mục [db/migration](file:///e:/WORKSPACE/PROJECT_WEB/khoi-nghiep/backend/main/src/main/resources/db/migration):
+Hệ thống sử dụng **Flyway** kết hợp với bộ công cụ **MigrationGenerator (Prisma-like)** để tự động quản lý lịch sử và đồng bộ hóa cấu trúc cơ sở dữ liệu PostgreSQL.
 
-1.  `V1__create_core_tables.sql`: Khởi tạo bảng `users`, `currency`, `categories`, `groups`.
-2.  `V2__create_group_relations.sql`: Tạo bảng `group_members`, `group_invitations`.
-3.  `V3__create_expense_tables.sql`: Tạo các bảng chi tiêu `expenses`, `expense_payers`, `expense_shares`.
-4.  `V4__create_debt_and_settlement_tables.sql`: Tạo các bảng công nợ `debts` và thanh toán `settlements`.
-5.  `V5__create_activities_table.sql`: Tạo bảng `activities` ghi nhận hoạt động nhóm.
-6.  `V6__add_indexes.sql`: Tối ưu hóa truy vấn bằng các index lên các cột FK và trường tìm kiếm thường xuyên.
-7.  `V7__seed_reference_data.sql`: Seed dữ liệu cơ bản cho bảng tiền tệ (`currency`) và danh mục (`categories`).
+Các file SQL migration được tự động đặt tại thư mục [db/migration](file:///e:/WORKSPACE/PROJECT_WEB/khoi-nghiep/backend/main/src/main/resources/db/migration) với định dạng đặt tên timestamp chuẩn: `V<YYYYMMDDHHMMSS>__<tên_migration>.sql`.
+
+### Quy trình hoạt động:
+1. **Tự động tính toán Diff (Chênh lệch)**: [MigrationGenerator](file:///e:/WORKSPACE/PROJECT_WEB/khoi-nghiep/backend/main/src/main/java/com/hcmut/divvy/generator/MigrationGenerator.java) so sánh trực tiếp định nghĩa `@Entity` Java với cấu trúc Database PostgreSQL đang chạy.
+2. **Sinh file SQL Migration**: Chỉ trích xuất các câu lệnh DDL cần thiết (`CREATE TABLE`, `ALTER TABLE`, `ADD COLUMN`, `CREATE INDEX`...) và lưu thành file migration mới.
+3. **Thực thi tự động qua Flyway**: Khi chạy app (`.\gradlew bootRun`), Flyway sẽ tự động ghi sổ vào bảng `flyway_schema_history` và áp dụng SQL mới vào CSDL.
 
 ---
 

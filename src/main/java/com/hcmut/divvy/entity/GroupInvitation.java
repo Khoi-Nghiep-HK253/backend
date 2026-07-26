@@ -8,7 +8,10 @@ import lombok.experimental.SuperBuilder;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "group_invitations")
+@Table(name = "group_invitations", indexes = {
+    @Index(name = "idx_group_invitations_group", columnList = "group_id"),
+    @Index(name = "idx_group_invitations_invitee", columnList = "invitee_id")
+})
 @Getter
 @Setter
 @NoArgsConstructor

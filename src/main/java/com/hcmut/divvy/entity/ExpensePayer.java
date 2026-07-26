@@ -8,7 +8,10 @@ import lombok.experimental.SuperBuilder;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "expense_payers")
+@Table(name = "expense_payers", indexes = {
+    @Index(name = "idx_expense_payers_expense_id", columnList = "expense_id"),
+    @Index(name = "idx_expense_payers_user_id", columnList = "user_id")
+})
 @Getter
 @Setter
 @NoArgsConstructor

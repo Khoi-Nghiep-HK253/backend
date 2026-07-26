@@ -11,6 +11,9 @@ import org.springframework.context.annotation.Configuration;
 import javax.sql.DataSource;
 import java.util.Arrays;
 
+/**
+ * Ensures Flyway runs migrations BEFORE Hibernate initializes/validates the database schema.
+ */
 @Configuration
 public class FlywayConfig implements BeanFactoryPostProcessor {
 
@@ -18,7 +21,7 @@ public class FlywayConfig implements BeanFactoryPostProcessor {
     public Flyway flyway(DataSource dataSource) {
         return Flyway.configure()
                 .dataSource(dataSource)
-                .locations("classpath:db/migration", "classpath:db/dev-migration")
+                .locations("classpath:db/migration")
                 .baselineOnMigrate(true)
                 .load();
     }
@@ -31,9 +34,18 @@ public class FlywayConfig implements BeanFactoryPostProcessor {
             if (dependsOn == null) {
                 bd.setDependsOn("flyway");
             } else {
-                String[] newDependsOn = Arrays.copyOf(dependsOn, dependsOn.length + 1);
-                newDependsOn[dependsOn.length] = "flyway";
-                bd.setDependsOn(newDependsOn);
+                boolean alreadyContains = false;
+                for (String dep : dependsOn) {
+                    if ("flyway".equals(dep)) {
+                        alreadyContains = true;
+                        break;
+                    }
+                }
+                if (!alreadyContains) {
+                    String[] newDependsOn = Arrays.copyOf(dependsOn, dependsOn.length + 1);
+                    newDependsOn[dependsOn.length] = "flyway";
+                    bd.setDependsOn(newDependsOn);
+                }
             }
         }
     }

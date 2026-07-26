@@ -32,8 +32,11 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testAnnotationProcessor 'org.projectlombok:lombok'
+
+    // ── Flyway ────────────────────────────────────────────────────────────────
     implementation 'org.flywaydb:flyway-core'
-    implementation 'org.flywaydb:flyway-database-postgresql'
+    runtimeOnly 'org.flywaydb:flyway-database-postgresql'
+
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.mapstruct:mapstruct:1.6.3'
@@ -45,4 +48,27 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+// ── Prisma-like Migration Task ───────────────────────────────────────────────
+// Usage:
+//   .\gradlew migrateDev -PmigrationName=create_core_tables
+//   .\gradlew migrateDev -PmigrationName=add_user_avatar
+//
+// What it does:
+//   1. Compares JPA Entities against running PostgreSQL DB
+//   2. Generates ONLY the diff DDL (CREATE TABLE, ALTER TABLE, ADD COLUMN...)
+//   3. Outputs a timestamped Flyway SQL migration file in src/main/resources/db/migration/
+// ─────────────────────────────────────────────────────────────────────────────
+tasks.register('migrateDev', JavaExec) {
+    dependsOn 'classes'
+    group = 'migration'
+    description = 'Prisma-like migrate dev: compares JPA entities against DB and creates a timestamped Flyway migration file'
+
+    mainClass = 'com.hcmut.divvy.generator.MigrationGenerator'
+    classpath = sourceSets.main.runtimeClasspath
+
+    def migName = project.hasProperty('migrationName') ? project.property('migrationName') :
+                  (project.hasProperty('name') && project.property('name') != project.name ? project.property('name') : 'schema_update')
+    systemProperty 'migration.name', migName
 }
