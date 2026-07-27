@@ -2,6 +2,7 @@ package com.hcmut.divvy.config;
 
 import com.hcmut.divvy.entity.*;
 import com.hcmut.divvy.entity.Currency;
+import com.hcmut.divvy.entity.enums.InvitationStatus;
 import com.hcmut.divvy.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -129,7 +130,7 @@ public class DevDataSeeder implements CommandLineRunner {
         // 5. Seed Invitations
         groupInvitationRepository.save(GroupInvitation.builder()
                 .group(groupDaLat).inviter(hung).invitee(binh)
-                .status("ACCEPTED").token("tok_abc123")
+                .status(InvitationStatus.ACCEPTED).token("tok_abc123")
                 .message("Đi Đà Lạt cùng bọn mình nhé!")
                 .expiresAt(LocalDateTime.of(2026, 7, 30, 0, 0))
                 .build());

@@ -1,6 +1,7 @@
 package com.hcmut.divvy.entity;
 
 import com.hcmut.divvy.common.audit.BaseEntity;
+import com.hcmut.divvy.entity.enums.InvitationStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -35,9 +36,10 @@ public class GroupInvitation extends BaseEntity {
     @JoinColumn(name = "invitee_id", nullable = false)
     private User invitee;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     @Builder.Default
-    private String status = "PENDING";
+    private InvitationStatus status = InvitationStatus.PENDING;
 
     @Column(nullable = false, unique = true, length = 255)
     private String token;
@@ -48,3 +50,4 @@ public class GroupInvitation extends BaseEntity {
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;
 }
+

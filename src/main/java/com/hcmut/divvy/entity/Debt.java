@@ -1,6 +1,7 @@
 package com.hcmut.divvy.entity;
 
 import com.hcmut.divvy.common.audit.BaseEntity;
+import com.hcmut.divvy.entity.enums.DebtStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -39,7 +40,9 @@ public class Debt extends BaseEntity {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     @Builder.Default
-    private String status = "PENDING";
+    private DebtStatus status = DebtStatus.PENDING;
 }
+

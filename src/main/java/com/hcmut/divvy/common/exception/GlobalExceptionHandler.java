@@ -2,6 +2,9 @@ package com.hcmut.divvy.common.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -38,6 +41,38 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.badRequest().body(response);
+    }
+
+    // -------------------------------------------------------------------------
+    // 401 — Authentication Exception (Wrong password / username / email)
+    // -------------------------------------------------------------------------
+
+    @ExceptionHandler({BadCredentialsException.class, AuthenticationException.class})
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(Exception ex) {
+        ErrorResponse response = ErrorResponse.builder()
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .error("Unauthorized")
+                .message("Invalid username/email or password.")
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    // -------------------------------------------------------------------------
+    // 403 — Access Denied Exception
+    // -------------------------------------------------------------------------
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
+        ErrorResponse response = ErrorResponse.builder()
+                .status(HttpStatus.FORBIDDEN.value())
+                .error("Forbidden")
+                .message("Access denied. You do not have permission to perform this action.")
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
 
     // -------------------------------------------------------------------------
@@ -88,3 +123,4 @@ public class GlobalExceptionHandler {
         return ResponseEntity.internalServerError().body(response);
     }
 }
+
