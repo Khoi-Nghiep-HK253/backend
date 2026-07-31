@@ -17,6 +17,9 @@ import com.hcmut.divvy.repository.UserRepository;
 import com.hcmut.divvy.security.JwtTokenProvider;
 import com.hcmut.divvy.service.AuthService;
 import com.hcmut.divvy.service.EmailService;
+import com.hcmut.divvy.helper.StringHelper;
+import com.hcmut.divvy.helper.TokenHelper;
+import com.hcmut.divvy.validator.PasswordResetValidator;
 import com.hcmut.divvy.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +33,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -41,6 +43,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final UserValidator userValidator;
+    private final PasswordResetValidator passwordResetValidator;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
     private final AuthenticationManager authenticationManager;
@@ -119,7 +122,7 @@ public class AuthServiceImpl implements AuthService {
         passwordResetTokenRepository.invalidateAllByUserId(user.getId());
 
         // Generate a new secure token
-        String rawToken = UUID.randomUUID().toString().replace("-", "");
+        String rawToken = TokenHelper.generateToken();
         PasswordResetToken resetToken = PasswordResetToken.builder()
                 .user(user)
                 .token(rawToken)
@@ -137,17 +140,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public VerifyTokenResponse verifyResetToken(String token) {
-        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token)
-                .orElseThrow(() -> new BusinessException("Invalid or expired reset token.", HttpStatus.BAD_REQUEST));
+        PasswordResetToken resetToken = passwordResetValidator.validateToken(token);
 
-        if (resetToken.isExpired()) {
-            throw new BusinessException("Reset token has expired. Please request a new one.", HttpStatus.GONE);
-        }
-        if (resetToken.getUsed()) {
-            throw new BusinessException("Reset token has already been used.", HttpStatus.BAD_REQUEST);
-        }
-
-        String maskedEmail = maskEmail(resetToken.getUser().getEmail());
+        String maskedEmail = StringHelper.maskEmail(resetToken.getUser().getEmail());
         return VerifyTokenResponse.builder()
                 .email(maskedEmail)
                 .expiresAt(resetToken.getExpiresAt())
@@ -157,26 +152,13 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
-        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-            throw new BusinessException("New password and confirm password do not match.");
-        }
-
-        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(request.getToken())
+        // Resolve the user first via the token (needed by validator for password comparison)
+        PasswordResetToken preCheck = passwordResetTokenRepository.findByToken(request.getToken())
                 .orElseThrow(() -> new BusinessException("Invalid or expired reset token.", HttpStatus.BAD_REQUEST));
 
-        if (resetToken.isExpired()) {
-            throw new BusinessException("Reset token has expired. Please request a new one.", HttpStatus.GONE);
-        }
-        if (resetToken.getUsed()) {
-            throw new BusinessException("Reset token has already been used.", HttpStatus.BAD_REQUEST);
-        }
+        PasswordResetToken resetToken = passwordResetValidator.validateResetPasswordRequest(request, preCheck.getUser());
 
         User user = resetToken.getUser();
-
-        if (passwordEncoder.matches(request.getNewPassword(), user.getHashPassword())) {
-            throw new BusinessException("New password must be different from the current password.");
-        }
-
         user.setHashPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
 
@@ -184,16 +166,5 @@ public class AuthServiceImpl implements AuthService {
         passwordResetTokenRepository.save(resetToken);
 
         log.info("Password reset successfully for user id={}", user.getId());
-    }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
-    /**
-     * Masks an email for safe display, e.g. "hung@example.com" → "h***@example.com"
-     */
-    private String maskEmail(String email) {
-        int atIndex = email.indexOf('@');
-        if (atIndex <= 1) return "***" + email.substring(atIndex);
-        return email.charAt(0) + "***" + email.substring(atIndex);
     }
 }
