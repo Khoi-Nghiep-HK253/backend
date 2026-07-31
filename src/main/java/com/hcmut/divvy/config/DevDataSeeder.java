@@ -109,6 +109,7 @@ public class DevDataSeeder implements CommandLineRunner {
                 .note("Nhóm bạn đi Đà Lạt 3 ngày 2 đêm")
                 .startDate(LocalDate.of(2026, 8, 1))
                 .endDate(LocalDate.of(2026, 8, 3))
+                .createdBy(hung)
                 .build());
 
         Group groupHouse = groupRepository.save(Group.builder()
@@ -116,6 +117,7 @@ public class DevDataSeeder implements CommandLineRunner {
                 .defaultCurrency(vnd)
                 .name("Tiền nhà chung cư")
                 .note("Chi phí sinh hoạt hàng tháng")
+                .createdBy(hung)
                 .build());
 
         // 4. Seed Group Members

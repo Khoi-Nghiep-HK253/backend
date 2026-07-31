@@ -9,7 +9,8 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "groups", indexes = {
-    @Index(name = "idx_groups_cate_id", columnList = "cate_id")
+    @Index(name = "idx_groups_cate_id", columnList = "cate_id"),
+    @Index(name = "idx_groups_created_by", columnList = "created_by")
 })
 @Getter
 @Setter
@@ -41,4 +42,9 @@ public class Group extends BaseEntity {
 
     @Column(name = "end_date")
     private LocalDate endDate;
+
+    /** The user who created this group. Set at creation time and never changed. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by", nullable = false)
+    private User createdBy;
 }
