@@ -2,9 +2,12 @@ package com.hcmut.divvy.controller;
 
 import com.hcmut.divvy.common.dto.ApiResponse;
 import com.hcmut.divvy.dto.request.CreateUserRequest;
+import com.hcmut.divvy.dto.request.ForgotPasswordRequest;
 import com.hcmut.divvy.dto.request.LoginRequest;
+import com.hcmut.divvy.dto.request.ResetPasswordRequest;
 import com.hcmut.divvy.dto.response.AuthResponse;
 import com.hcmut.divvy.dto.response.UserResponse;
+import com.hcmut.divvy.dto.response.VerifyTokenResponse;
 import com.hcmut.divvy.facade.AuthFacade;
 import com.hcmut.divvy.service.AuthService;
 import jakarta.validation.Valid;
@@ -38,5 +41,27 @@ public class AuthController {
     public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser(Authentication authentication) {
         UserResponse response = authFacade.execute(AuthService.class, service -> service.getCurrentUser(authentication.getName()));
         return ResponseEntity.ok(ApiResponse.ok(response, "Current user retrieved successfully"));
+    }
+
+    // ── Forgot Password ───────────────────────────────────────────────────────
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authFacade.executeVoid(AuthService.class, service -> service.forgotPassword(request));
+        return ResponseEntity.ok(ApiResponse.ok(null,
+                "If this email is registered, a password reset link has been sent."));
+    }
+
+    @GetMapping("/reset-password/verify")
+    public ResponseEntity<ApiResponse<VerifyTokenResponse>> verifyResetToken(@RequestParam String token) {
+        VerifyTokenResponse response = authFacade.execute(AuthService.class, service -> service.verifyResetToken(token));
+        return ResponseEntity.ok(ApiResponse.ok(response, "Token is valid"));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authFacade.executeVoid(AuthService.class, service -> service.resetPassword(request));
+        return ResponseEntity.ok(ApiResponse.ok(null,
+                "Password has been reset successfully. Please log in with your new password."));
     }
 }

@@ -9,6 +9,13 @@ spring:
     enabled: true
     baseline-on-migrate: true
 
+  # Enable @Async for EmailServiceImpl
+  task:
+    execution:
+      pool:
+        core-size: 2
+        max-size: 5
+
 server:
   port: 8080
 
@@ -25,4 +32,12 @@ jwt:
   secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
   expiration-ms: 86400000
 
-
+# ── Password Reset ────────────────────────────────────────────────────────────
+app:
+  reset-password:
+    expiry-minutes: 30
+    # Override in profile-specific YML or env var for production frontend URL
+    base-url: ${APP_RESET_PASSWORD_BASE_URL:http://localhost:3000/reset-password}
+  mail:
+    from: ${APP_MAIL_FROM:no-reply@divvy.app}
+    enabled: ${APP_MAIL_ENABLED:true}
