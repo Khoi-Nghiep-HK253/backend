@@ -1,7 +1,9 @@
 package com.hcmut.divvy.controller;
 
 import com.hcmut.divvy.common.dto.ApiResponse;
+import com.hcmut.divvy.dto.request.ChangePasswordRequest;
 import com.hcmut.divvy.dto.request.CreateUserRequest;
+import com.hcmut.divvy.dto.request.UpdateUserRequest;
 import com.hcmut.divvy.dto.response.UserResponse;
 import com.hcmut.divvy.facade.UserFacade;
 import com.hcmut.divvy.service.UserService;
@@ -9,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,5 +40,25 @@ public class UserController {
         UserResponse created = userFacade.execute(UserService.class, service -> service.create(request));
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.created(created, "User created successfully"));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<UserResponse>> updateProfile(
+            @PathVariable Integer id,
+            @RequestBody UpdateUserRequest request,
+            Authentication authentication) {
+        UserResponse updated = userFacade.execute(UserService.class,
+                service -> service.updateProfile(id, request, authentication.getName()));
+        return ResponseEntity.ok(ApiResponse.ok(updated, "User updated successfully"));
+    }
+
+    @PatchMapping("/{id}/password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            @PathVariable Integer id,
+            @Valid @RequestBody ChangePasswordRequest request,
+            Authentication authentication) {
+        userFacade.executeVoid(UserService.class,
+                service -> service.changePassword(id, request, authentication.getName()));
+        return ResponseEntity.ok(ApiResponse.ok(null, "Password changed successfully"));
     }
 }

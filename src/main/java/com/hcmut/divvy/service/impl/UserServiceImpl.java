@@ -1,7 +1,9 @@
 package com.hcmut.divvy.service.impl;
 
 import com.hcmut.divvy.common.exception.ResourceNotFoundException;
+import com.hcmut.divvy.dto.request.ChangePasswordRequest;
 import com.hcmut.divvy.dto.request.CreateUserRequest;
+import com.hcmut.divvy.dto.request.UpdateUserRequest;
 import com.hcmut.divvy.dto.response.UserResponse;
 import com.hcmut.divvy.entity.User;
 import com.hcmut.divvy.mapper.UserMapper;
@@ -47,5 +49,32 @@ public class UserServiceImpl implements UserService {
         user.setHashPassword(passwordEncoder.encode(request.getPassword()));
         User saved = userRepository.save(user);
         return userMapper.toResponse(saved);
+    }
+
+    @Override
+    @Transactional
+    public UserResponse updateProfile(Integer id, UpdateUserRequest request, String currentUsername) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+
+        userValidator.validateOwnership(user, currentUsername);
+
+        userMapper.updatePartial(request, user);
+        User saved = userRepository.save(user);
+        return userMapper.toResponse(saved);
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(Integer id, ChangePasswordRequest request, String currentUsername) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+
+        userValidator.validateOwnership(user, currentUsername);
+
+        userValidator.validateChangePassword(request, user);
+
+        user.setHashPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
     }
 }
