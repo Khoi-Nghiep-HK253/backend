@@ -1,5 +1,6 @@
 package com.hcmut.divvy.dto.response;
 
+import com.hcmut.divvy.entity.enums.UserRole;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -16,7 +17,7 @@ public class UserResponse {
     private String lastname;
     private String phone;
     private String email;
-    private String role;
+    private UserRole role;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

@@ -2,23 +2,20 @@ package com.hcmut.divvy.service.impl;
 
 import com.hcmut.divvy.common.exception.BusinessException;
 import com.hcmut.divvy.common.exception.ResourceNotFoundException;
-import com.hcmut.divvy.dto.request.CreateUserRequest;
-import com.hcmut.divvy.dto.request.ForgotPasswordRequest;
-import com.hcmut.divvy.dto.request.LoginRequest;
-import com.hcmut.divvy.dto.request.ResetPasswordRequest;
 import com.hcmut.divvy.dto.response.AuthResponse;
 import com.hcmut.divvy.dto.response.UserResponse;
 import com.hcmut.divvy.dto.response.VerifyTokenResponse;
 import com.hcmut.divvy.entity.PasswordResetToken;
 import com.hcmut.divvy.entity.User;
+import com.hcmut.divvy.helper.StringHelper;
+import com.hcmut.divvy.helper.TokenHelper;
 import com.hcmut.divvy.mapper.UserMapper;
 import com.hcmut.divvy.repository.PasswordResetTokenRepository;
 import com.hcmut.divvy.repository.UserRepository;
 import com.hcmut.divvy.security.JwtTokenProvider;
 import com.hcmut.divvy.service.AuthService;
 import com.hcmut.divvy.service.EmailService;
-import com.hcmut.divvy.helper.StringHelper;
-import com.hcmut.divvy.helper.TokenHelper;
+import com.hcmut.divvy.service.model.*;
 import com.hcmut.divvy.validator.PasswordResetValidator;
 import com.hcmut.divvy.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
@@ -56,15 +53,13 @@ public class AuthServiceImpl implements AuthService {
     @Value("${app.reset-password.base-url:http://localhost:3000/reset-password}")
     private String resetPasswordBaseUrl;
 
-    // ── Existing methods ──────────────────────────────────────────────────────
-
     @Override
     @Transactional
-    public AuthResponse register(CreateUserRequest request) {
-        userValidator.validateCreateUser(request);
+    public AuthResponse register(RegisterModel model) {
+        userValidator.validateCreateUser(model.getUsername(), model.getEmail());
 
-        User user = userMapper.toEntity(request);
-        user.setHashPassword(passwordEncoder.encode(request.getPassword()));
+        User user = userMapper.toEntity(model);
+        user.setHashPassword(passwordEncoder.encode(model.getPassword()));
 
         User saved = userRepository.save(user);
         String token = tokenProvider.generateToken(saved.getUsername());
@@ -77,14 +72,14 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthResponse login(LoginRequest request) {
+    public AuthResponse login(LoginModel model) {
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsernameOrEmail(), request.getPassword())
+                new UsernamePasswordAuthenticationToken(model.getUsernameOrEmail(), model.getPassword())
         );
 
-        User user = userRepository.findByUsername(request.getUsernameOrEmail())
-                .orElseGet(() -> userRepository.findByEmail(request.getUsernameOrEmail())
-                        .orElseThrow(() -> new ResourceNotFoundException("User", "usernameOrEmail", request.getUsernameOrEmail())));
+        User user = userRepository.findByUsername(model.getUsernameOrEmail())
+                .orElseGet(() -> userRepository.findByEmail(model.getUsernameOrEmail())
+                        .orElseThrow(() -> new ResourceNotFoundException("User", "usernameOrEmail", model.getUsernameOrEmail())));
 
         String token = tokenProvider.generateToken(user.getUsername());
 
@@ -103,25 +98,20 @@ public class AuthServiceImpl implements AuthService {
         return userMapper.toResponse(user);
     }
 
-    // ── Forgot Password ───────────────────────────────────────────────────────
-
     @Override
     @Transactional
-    public void forgotPassword(ForgotPasswordRequest request) {
-        Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
+    public void forgotPassword(ForgotPasswordModel model) {
+        Optional<User> userOpt = userRepository.findByEmail(model.getEmail());
 
-        // Always return success — do not reveal whether the email is registered
         if (userOpt.isEmpty()) {
-            log.info("Password reset requested for unregistered email: {}", request.getEmail());
+            log.info("Password reset requested for unregistered email: {}", model.getEmail());
             return;
         }
 
         User user = userOpt.get();
 
-        // Invalidate all existing unused tokens for this user
         passwordResetTokenRepository.invalidateAllByUserId(user.getId());
 
-        // Generate a new secure token
         String rawToken = TokenHelper.generateToken();
         PasswordResetToken resetToken = PasswordResetToken.builder()
                 .user(user)
@@ -139,8 +129,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public VerifyTokenResponse verifyResetToken(String token) {
-        PasswordResetToken resetToken = passwordResetValidator.validateToken(token);
+    public VerifyTokenResponse verifyResetToken(VerifyResetTokenModel model) {
+        PasswordResetToken resetToken = passwordResetValidator.validateToken(model.getToken());
 
         String maskedEmail = StringHelper.maskEmail(resetToken.getUser().getEmail());
         return VerifyTokenResponse.builder()
@@ -151,15 +141,14 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public void resetPassword(ResetPasswordRequest request) {
-        // Resolve the user first via the token (needed by validator for password comparison)
-        PasswordResetToken preCheck = passwordResetTokenRepository.findByToken(request.getToken())
+    public void resetPassword(ResetPasswordModel model) {
+        PasswordResetToken preCheck = passwordResetTokenRepository.findByToken(model.getToken())
                 .orElseThrow(() -> new BusinessException("Invalid or expired reset token.", HttpStatus.BAD_REQUEST));
 
-        PasswordResetToken resetToken = passwordResetValidator.validateResetPasswordRequest(request, preCheck.getUser());
+        PasswordResetToken resetToken = passwordResetValidator.validateResetPasswordRequest(model.getToken(), model.getNewPassword(), model.getConfirmPassword(), preCheck.getUser());
 
         User user = resetToken.getUser();
-        user.setHashPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setHashPassword(passwordEncoder.encode(model.getNewPassword()));
         userRepository.save(user);
 
         resetToken.setUsed(true);

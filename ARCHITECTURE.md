@@ -6,26 +6,27 @@ Tài liệu này mô tả chi tiết kiến trúc, mô hình tổ chức source 
 
 ## 1. Sơ đồ Kiến trúc Tổng quan (Architecture Diagram)
 
-Hệ thống được thiết kế theo mô hình **Layered Architecture** kết hợp với **Facade Pattern** phân cấp (BaseFacade -> DomainFacade) nhằm mục đích decoupling tối đa giữa các Layer.
+Hệ thống được thiết kế theo mô hình **Layered Architecture** nâng cao kết hợp **Single Model Parameter Pattern** (Command Object Pattern), **Centralized Validator Layer**, và **Strongly-Typed Enums** nhằm mục đích đảm bảo tính rõ ràng, tách biệt trách nhiệm, tránh phình to phương thức và dễ dàng mở rộng.
 
 ```mermaid
 graph TD
-    Client[Client / Frontend] -->|HTTP Requests| Controllers[Controller Layer]
+    Client[Client / Frontend] -->|HTTP Requests - DTOs| Controllers[Controller Layer]
     
-    subgraph Facade Layer
-        Controllers -->|Direct Entry| DomainFacade[Domain Facade e.g., UserFacade]
-        DomainFacade -->|Inherits Execute| BaseFacade[BaseFacade]
+    subgraph Controller to Model Transformation
+        Controllers -->|MapStruct Mappers| Mappers[MapStruct Mappers]
+        Mappers -->|Convert Request DTO + Auth + PathParams| Models[Single Command Models com.hcmut.divvy.service.model]
     end
-    
+
     subgraph Service & Business Layer
-        BaseFacade -->|Dynamic Delegate| Services[Service Layer Interfaces]
-        Services -->|Business Logic| ServiceImpls[Service Implementation]
-        ServiceImpls -->|Domain Rules Check| Validators[Validator Layer]
+        Controllers -->|Injected Interface| Services[Service Layer Interfaces com.hcmut.divvy.service]
+        Services -->|Single Model Input| ServiceImpls[Service Implementations com.hcmut.divvy.service.impl]
+        ServiceImpls -->|Delegate Business Rule Checks| Validators[Validator Layer com.hcmut.divvy.validator]
     end
     
     subgraph Data Access Layer
         ServiceImpls -->|Data Query/Persist| Repositories[Repository Layer JPA]
         Repositories -->|ORM Mapping| Entities[JPA Entities]
+        Entities -->|Uses Enums| Enums[Strongly-Typed Enums com.hcmut.divvy.entity.enums]
         Entities -->|Extends Audit| BaseEntity[BaseEntity]
     end
 
@@ -41,37 +42,32 @@ graph TD
 ## 2. Mô tả các Layer (Layer Breakdown)
 
 ### 2.1. Controller Layer (`com.hcmut.divvy.controller`)
-*   **Nhiệm vụ:** Tiếp nhận HTTP requests, xử lý validation đầu vào bằng `jakarta.validation.constraints` (thông qua `@Valid`), và trả về cấu trúc response đồng nhất `ApiResponse<T>`.
-*   **Nguyên tắc:** **100% Facade-Centric**. Controllers không được phép tự inject trực tiếp các Service cụ thể. Tất cả các service calls (kể cả CRUD đơn giản hay nghiệp vụ phức tạp) đều được điều phối qua Facade tương ứng (ví dụ: `UserFacade`).
-*   **Ví dụ:** [UserController](file:///e:/WORKSPACE/PROJECT_WEB/khoi-nghiep/backend/main/src/main/java/com/hcmut/divvy/controller/UserController.java)
+*   **Nhiệm vụ:** Tiếp nhận HTTP requests, xử lý validation đầu vào bằng `jakarta.validation.constraints` (thông qua `@Valid`), ánh xạ DTOs/Request Params thành Single Model đối tượng thông qua MapStruct Mapper và trả về cấu trúc response đồng nhất `ApiResponse<T>`.
+*   **Nguyên tắc:** Inject trực tiếp interface `Service` tương ứng để xử lý công việc.
+*   **Ví dụ:** [GroupController](file:///e:/WORKSPACE/PROJECT_WEB/khoi-nghiep/backend/main/src/main/java/com/hcmut/divvy/controller/GroupController.java)
 
-### 2.2. Facade Layer (`com.hcmut.divvy.facade`)
-*   **Nhiệm vụ:** Cung cấp điểm tiếp nhận duy nhất cho Controller theo từng domain cụ thể.
-*   **Cấu trúc kế thừa:**
-    *   [BaseFacade](file:///e:/WORKSPACE/PROJECT_WEB/khoi-nghiep/backend/main/src/main/java/com/hcmut/divvy/facade/BaseFacade.java): Chứa `ApplicationContext` và cung cấp hai phương thức generic `execute` và `executeVoid` để tự động phân giải các Service Bean động từ Spring container.
-    *   [UserFacade](file:///e:/WORKSPACE/PROJECT_WEB/khoi-nghiep/backend/main/src/main/java/com/hcmut/divvy/facade/UserFacade.java): Kế thừa `BaseFacade`, đại diện cho phân vùng xử lý User. Đây là nơi chứa logic điều phối phức tạp liên quan đến User và các service khác sau này.
-*   **Lợi ích:**
-    *   Giảm số lượng dependency cần inject vào Controllers.
-    *   Tách biệt hoàn toàn tầng Routing (Controller) và tầng Nghiệp vụ (Service).
-    *   Dễ dàng chèn thêm các cross-cutting concerns (logging, transaction auditing, metrics) tại một điểm tập trung duy nhất ở `BaseFacade`.
+### 2.2. Service Layer (`com.hcmut.divvy.service`)
+*   **Nhiệm vụ:** Định nghĩa business interfaces tại gói gốc (`com.hcmut.divvy.service`) và thực thi business logic tại lớp Implementations (`com.hcmut.divvy.service.impl`).
+*   **Cấu trúc 2 Folder Con:**
+    *   `com.hcmut.divvy.service.impl`: Chứa toàn bộ các lớp Service Implementation thực thi nghiệp vụ (`AuthServiceImpl`, `GroupServiceImpl`, `GroupMemberServiceImpl`, `UserServiceImpl`, `EmailServiceImpl`).
+    *   `com.hcmut.divvy.service.model`: Chứa toàn bộ các Single Command/Parameter Models (`CreateGroupModel`, `UpdateGroupModel`, `LoginModel`, `RegisterModel`, `AddMemberModel`,...).
+*   **Nguyên tắc Single Model Parameter Pattern:**
+    *   Mỗi phương thức của Service chỉ nhận **DUY NHẤT 1 đối tượng Model** làm tham số đầu vào (ví dụ `groupService.create(CreateGroupModel model)`), gom toàn bộ dữ liệu request body, path parameters và thông tin tài khoản đang đăng nhập.
+    *   Lớp implementation được đánh dấu `@Service` và `@Transactional`. Tương tác với Repositories để đọc/ghi dữ liệu và gọi `Validator` tương ứng để kiểm tra nghiệp vụ.
 
-### 2.3. Service Layer (`com.hcmut.divvy.service`)
-*   **Nhiệm vụ:** Định nghĩa business interfaces và thực thi business logic tại lớp Implementations (`com.hcmut.divvy.service.impl`).
-*   **Nguyên tắc:** 
-    *   Lớp interface đại diện cho contract (Ví dụ: [UserService](file:///e:/WORKSPACE/PROJECT_WEB/khoi-nghiep/backend/main/src/main/java/com/hcmut/divvy/service/UserService.java)).
-    *   Lớp implementation thực thi nghiệp vụ, được đánh dấu `@Service` và `@Transactional` (Ví dụ: [UserServiceImpl](file:///e:/WORKSPACE/PROJECT_WEB/khoi-nghiep/backend/main/src/main/java/com/hcmut/divvy/service/impl/UserServiceImpl.java)).
-    *   Tương tác với Repositories để đọc/ghi dữ liệu và gọi Validators để kiểm tra nghiệp vụ.
+### 2.3. Validator Layer (`com.hcmut.divvy.validator`)
+*   **Nhiệm vụ:** Tập trung xử lý các validation mang tính trạng thái CSDL hoặc kiểm tra quyền/ràng buộc nghiệp vụ (`UserValidator`, `GroupValidator`, `GroupMemberValidator`, `PasswordResetValidator`).
+*   **Mục đích:** Giúp tầng Service luôn tinh gọn, tập trung hoàn toàn vào luồng nghiệp vụ chính thay vì bị phình to bởi các đoạn code `if/else throw new Exception`.
 
-### 2.4. Validator Layer (`com.hcmut.divvy.validator`)
-*   **Nhiệm vụ:** Tập trung xử lý các validation mang tính trạng thái hoặc kiểm tra dữ liệu từ database (Ví dụ: kiểm tra trùng lặp email/username, kiểm tra thực thể có tồn tại không).
-*   **Mục đích:** Giúp tầng Service luôn tinh gọn, tập trung hoàn toàn vào luồng nghiệp vụ chính thay vị bị phình to bởi các đoạn code `if/else throw new Exception`.
+### 2.4. Entity & Enum Layer (`com.hcmut.divvy.entity` / `com.hcmut.divvy.entity.enums`)
+*   **Nhiệm vụ:** Khai báo cấu trúc bảng (ORM mapping). Tất cả các entities kế thừa từ `BaseEntity` để tự động quản lý các trường audit (`created_at`, `updated_at`) thông qua JPA Auditing.
+*   **Enums:**
+    *   `UserRole`: Quản lý phân quyền người dùng (`USER`, `ADMIN`).
+    *   `InvitationStatus`: Quản lý trạng thái lời mời (`PENDING`, `ACCEPTED`, `DECLINED`, `EXPIRED`, `REVOKED`).
+    *   `DebtStatus`: Quản lý trạng thái công nợ (`PENDING`, `SETTLED`, `CANCELLED`).
 
 ### 2.5. Repository Layer (`com.hcmut.divvy.repository`)
 *   **Nhiệm vụ:** Giao tiếp trực tiếp với database. Kế thừa `JpaRepository` của Spring Data JPA.
-*   **Ví dụ:** [UserRepository](file:///e:/WORKSPACE/PROJECT_WEB/khoi-nghiep/backend/main/src/main/java/com/hcmut/divvy/repository/UserRepository.java).
-
-### 2.6. Entity Layer (`com.hcmut.divvy.entity`)
-*   **Nhiệm vụ:** Khai báo cấu trúc bảng (ORM mapping). Tất cả các entities kế thừa từ [BaseEntity](file:///e:/WORKSPACE/PROJECT_WEB/khoi-nghiep/backend/main/src/main/java/com/hcmut/divvy/common/audit/BaseEntity.java) để tự động quản lý các trường audit (`created_at`, `updated_at`) thông qua JPA Auditing.
 
 ---
 
@@ -81,30 +77,28 @@ Hệ thống sử dụng **Flyway** kết hợp với bộ công cụ **Migratio
 
 Các file SQL migration được tự động đặt tại thư mục [db/migration](file:///e:/WORKSPACE/PROJECT_WEB/khoi-nghiep/backend/main/src/main/resources/db/migration) với định dạng đặt tên timestamp chuẩn: `V<YYYYMMDDHHMMSS>__<tên_migration>.sql`.
 
-### Quy trình hoạt động:
-1. **Tự động tính toán Diff (Chênh lệch)**: [MigrationGenerator](file:///e:/WORKSPACE/PROJECT_WEB/khoi-nghiep/backend/main/src/main/java/com/hcmut/divvy/generator/MigrationGenerator.java) so sánh trực tiếp định nghĩa `@Entity` Java với cấu trúc Database PostgreSQL đang chạy.
-2. **Sinh file SQL Migration**: Chỉ trích xuất các câu lệnh DDL cần thiết (`CREATE TABLE`, `ALTER TABLE`, `ADD COLUMN`, `CREATE INDEX`...) và lưu thành file migration mới.
-3. **Thực thi tự động qua Flyway**: Khi chạy app (`.\gradlew bootRun`), Flyway sẽ tự động ghi sổ vào bảng `flyway_schema_history` và áp dụng SQL mới vào CSDL.
-
 ---
 
 ## 4. Luồng xử lý một Request mẫu (Request Flow Example)
 
-Khi Client thực hiện gửi request tạo User mới (`POST /api/users`):
+Khi Client thực hiện gửi request tạo Nhóm mới (`POST /api/groups`):
 
-```
-Client  ──► [Controller: UserController.createUser()]
+```text
+Client  ──► [Controller: GroupController.createGroup(request, authentication)]
                  │
-                 ▼  (Kiểm tra @Valid CreateUserRequest)
-            [Facade: UserFacade.execute(UserService.class, service -> service.create(request))]
+                 ▼  (Validates @Valid CreateGroupRequest & Maps to Single Model)
+            [GroupMapper: groupMapper.toModel(request, authentication.getName())]
                  │
-                 ▼  (Phân giải động thông qua BaseFacade -> Spring ApplicationContext)
-            [Service: UserServiceImpl.create()]
+                 ▼  (Passes Single CreateGroupModel)
+            [Service: GroupServiceImpl.create(CreateGroupModel model)]
                  │
-                 ├──► [Validator: validate user rules (no duplicate email/username)]
+                 ├──► [Validator: GroupValidator.validateUserExists(model.getCurrentUsername())]
+                 ├──► [Validator: GroupValidator.validateCategoryExists(model.getCategoryId())]
+                 ├──► [Validator: GroupValidator.validateCurrencyExists(model.getDefaultCurrencyId())]
                  │
-                 ├──► [Repository: UserRepository.save(User entity)]
+                 ├──► [Repository: GroupRepository.save(Group entity)]
+                 ├──► [Repository: GroupMemberRepository.save(Creator as ADMIN)]
                  │
-                 ▼  (Mapping Entity -> UserResponse)
-Client  ◄── [Return ApiResponse.created(createdUser)]
+                 ▼  (Mapping Entity -> GroupResponse)
+Client  ◄── [Return ApiResponse.created(groupResponse)]
 ```

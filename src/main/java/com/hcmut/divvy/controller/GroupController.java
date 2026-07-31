@@ -4,7 +4,7 @@ import com.hcmut.divvy.common.dto.ApiResponse;
 import com.hcmut.divvy.dto.request.CreateGroupRequest;
 import com.hcmut.divvy.dto.request.UpdateGroupRequest;
 import com.hcmut.divvy.dto.response.GroupResponse;
-import com.hcmut.divvy.facade.GroupFacade;
+import com.hcmut.divvy.mapper.GroupMapper;
 import com.hcmut.divvy.service.GroupService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,14 +21,14 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class GroupController {
 
-    private final GroupFacade groupFacade;
+    private final GroupService groupService;
+    private final GroupMapper groupMapper;
 
     @PostMapping
     public ResponseEntity<ApiResponse<GroupResponse>> createGroup(
             @Valid @RequestBody CreateGroupRequest request,
             Authentication authentication) {
-        GroupResponse group = groupFacade.execute(GroupService.class,
-                service -> service.create(request, authentication.getName()));
+        GroupResponse group = groupService.create(groupMapper.toModel(request, authentication.getName()));
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.created(group, "Group created successfully"));
     }
@@ -38,8 +38,8 @@ public class GroupController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             Authentication authentication) {
-        Page<GroupResponse> groups = groupFacade.execute(GroupService.class,
-                service -> service.findMyGroups(
+        Page<GroupResponse> groups = groupService.findMyGroups(
+                groupMapper.toFindMyGroupsModel(
                         authentication.getName(),
                         PageRequest.of(page, size, Sort.by("createdAt").descending())));
         return ResponseEntity.ok(ApiResponse.ok(groups, "Groups retrieved successfully"));
@@ -49,8 +49,7 @@ public class GroupController {
     public ResponseEntity<ApiResponse<GroupResponse>> getGroupById(
             @PathVariable Integer groupId,
             Authentication authentication) {
-        GroupResponse group = groupFacade.execute(GroupService.class,
-                service -> service.findById(groupId, authentication.getName()));
+        GroupResponse group = groupService.findById(groupMapper.toGetGroupByIdModel(groupId, authentication.getName()));
         return ResponseEntity.ok(ApiResponse.ok(group, "Group retrieved successfully"));
     }
 
@@ -59,8 +58,7 @@ public class GroupController {
             @PathVariable Integer groupId,
             @RequestBody UpdateGroupRequest request,
             Authentication authentication) {
-        GroupResponse group = groupFacade.execute(GroupService.class,
-                service -> service.update(groupId, request, authentication.getName()));
+        GroupResponse group = groupService.update(groupMapper.toModel(request, groupId, authentication.getName()));
         return ResponseEntity.ok(ApiResponse.ok(group, "Group updated successfully"));
     }
 
@@ -68,8 +66,7 @@ public class GroupController {
     public ResponseEntity<ApiResponse<Void>> deleteGroup(
             @PathVariable Integer groupId,
             Authentication authentication) {
-        groupFacade.executeVoid(GroupService.class,
-                service -> service.delete(groupId, authentication.getName()));
+        groupService.delete(groupMapper.toDeleteGroupModel(groupId, authentication.getName()));
         return ResponseEntity.ok(ApiResponse.ok(null, "Group deleted successfully"));
     }
 }

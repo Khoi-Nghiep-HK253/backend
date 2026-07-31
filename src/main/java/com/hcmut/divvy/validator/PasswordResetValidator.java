@@ -1,9 +1,9 @@
 package com.hcmut.divvy.validator;
 
 import com.hcmut.divvy.common.exception.BusinessException;
-import com.hcmut.divvy.dto.request.ResetPasswordRequest;
 import com.hcmut.divvy.entity.PasswordResetToken;
 import com.hcmut.divvy.entity.User;
+import com.hcmut.divvy.service.model.*;
 import com.hcmut.divvy.repository.PasswordResetTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,6 +16,10 @@ public class PasswordResetValidator {
 
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final PasswordEncoder passwordEncoder;
+
+    public PasswordResetToken validateToken(VerifyResetTokenModel model) {
+        return validateToken(model.getToken());
+    }
 
     /**
      * Finds and validates that a reset token exists, is unused, and has not expired.
@@ -48,19 +52,19 @@ public class PasswordResetValidator {
      *   <li>the token must be valid (delegates to {@link #validateToken})</li>
      *   <li>new password must differ from the current hashed password</li>
      * </ul>
-     *
-     * @param request the reset password request DTO
-     * @param user    the user whose password is being reset
-     * @return the valid {@link PasswordResetToken} entity ready to be marked as used
      */
-    public PasswordResetToken validateResetPasswordRequest(ResetPasswordRequest request, User user) {
-        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+    public PasswordResetToken validateResetPasswordRequest(ResetPasswordModel model, User user) {
+        return validateResetPasswordRequest(model.getToken(), model.getNewPassword(), model.getConfirmPassword(), user);
+    }
+
+    public PasswordResetToken validateResetPasswordRequest(String token, String newPassword, String confirmPassword, User user) {
+        if (!newPassword.equals(confirmPassword)) {
             throw new BusinessException("New password and confirm password do not match.");
         }
 
-        PasswordResetToken resetToken = validateToken(request.getToken());
+        PasswordResetToken resetToken = validateToken(token);
 
-        if (passwordEncoder.matches(request.getNewPassword(), user.getHashPassword())) {
+        if (passwordEncoder.matches(newPassword, user.getHashPassword())) {
             throw new BusinessException("New password must be different from the current password.");
         }
 

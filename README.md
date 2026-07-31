@@ -12,7 +12,7 @@ Backend service cho hệ thống quản lý chi tiêu nhóm, chia tiền (expens
 - **Data Access**: Spring Data JPA & Hibernate
 - **Database**: PostgreSQL 16
 - **Database Migration**: Flyway (`flyway-core`, `flyway-database-postgresql`)
-- **DTO Mapping**: MapStruct `1.6.3`
+- **DTO & Model Mapping**: MapStruct `1.6.3`
 - **Code Generation**: Lombok
 - **Containerization**: Docker & Docker Compose
 - **Build Tool**: Gradle
@@ -21,26 +21,44 @@ Backend service cho hệ thống quản lý chi tiêu nhóm, chia tiền (expens
 
 ## 🏗 Kiến Trúc Hệ Thống (Architecture)
 
-Hệ thống tuân thủ mô hình **Layered Architecture** kết hợp với **Facade Pattern**:
+Hệ thống tuân thủ mô hình **Layered Architecture** chuẩn kết hợp với **Single Model Parameter Pattern** (Command Object Pattern), **Centralized Validator Layer**, và **Strongly-Typed Enums**:
 
-```
+```text
 Client / Frontend
-       │ (HTTP Requests)
+       │ (HTTP Requests - Request DTOs)
        ▼
 Controllers (`com.hcmut.divvy.controller`)
-       │ (100% Facade-Centric)
+       │
+       │ (MapStruct: DTO + Auth + PathParams ──► Single Model)
        ▼
-Facades (`com.hcmut.divvy.facade`)
-       │ (Phân giải động qua BaseFacade -> Spring ApplicationContext)
+Service Interfaces (`com.hcmut.divvy.service`)
+       │
        ▼
-Services (`com.hcmut.divvy.service`) ──► Validators (`com.hcmut.divvy.validator`)
+Service Implementations (`com.hcmut.divvy.service.impl`) ──► Validators (`com.hcmut.divvy.validator`)
+  (Models: `com.hcmut.divvy.service.model`)
        │
        ▼
 Repositories (`com.hcmut.divvy.repository`)
        │
        ▼
-Entities (`com.hcmut.divvy.entity`) ──► PostgreSQL Database
+Entities (`com.hcmut.divvy.entity` / `enums`) ──► PostgreSQL Database
 ```
+
+### 📁 Cấu Trúc Gói Tầng Service (`com.hcmut.divvy.service`):
+- `com.hcmut.divvy.service`: Chứa toàn bộ các Interface Service contract (`AuthService`, `GroupService`, `GroupMemberService`, `UserService`, `EmailService`).
+- `com.hcmut.divvy.service.impl`: Chứa toàn bộ các lớp Service Implementation thực thi nghiệp vụ (`AuthServiceImpl`, `GroupServiceImpl`, `GroupMemberServiceImpl`, `UserServiceImpl`, `EmailServiceImpl`).
+- `com.hcmut.divvy.service.model`: Chứa toàn bộ các Single Command/Parameter Models (`CreateGroupModel`, `UpdateGroupModel`, `LoginModel`, `RegisterModel`, `AddMemberModel`,...).
+
+### 🛡️ Tầng Xác Thực Nghiệp Vụ (`com.hcmut.divvy.validator`):
+- `UserValidator`: Xác thực tạo user, trùng lặp username/email, sở hữu tài khoản và đổi mật khẩu.
+- `GroupValidator`: Tập trung xác thực sự tồn tại của nhóm/danh mục/tiền tệ và phân quyền Admin/Thành viên.
+- `GroupMemberValidator`: Kiểm tra quy tắc thêm/xóa thành viên, phân quyền Admin và chặn hạ cấp Admin cuối cùng.
+- `PasswordResetValidator`: Kiểm tra tính hợp lệ và thời hạn của token reset mật khẩu.
+
+### 🏷️ Hệ Thống Enums Định Kiểu Mạnh (`com.hcmut.divvy.entity.enums`):
+- `UserRole`: Phân quyền người dùng hệ thống (`USER`, `ADMIN`).
+- `InvitationStatus`: Trạng thái lời mời tham gia nhóm (`PENDING`, `ACCEPTED`, `DECLINED`, `EXPIRED`, `REVOKED`).
+- `DebtStatus`: Trạng thái ghi nợ giữa các thành viên (`PENDING`, `SETTLED`, `CANCELLED`).
 
 > 📖 Chi tiết sơ đồ kiến trúc và luồng xử lý request mẫu xem tại [ARCHITECTURE.md](file:///e:/WORKSPACE/PROJECT_WEB/khoi-nghiep/backend/main/ARCHITECTURE.md).
 
@@ -100,10 +118,16 @@ Dịch vụ backend sẽ hoạt động tại: `http://localhost:8080`
 - **Public Endpoints** (Không yêu cầu Token):
   - `POST /api/auth/register` - Đăng ký tài khoản
   - `POST /api/auth/login` - Đăng nhập lấy JWT Bearer Token
+  - `POST /api/auth/forgot-password` - Quên mật khẩu
+  - `GET /api/auth/reset-password/verify` - Kiểm tra token reset mật khẩu
+  - `POST /api/auth/reset-password` - Đặt lại mật khẩu mới
   - `/actuator/**` - System health check & metrics
   - `/error` - Standard error responses
 - **Protected Endpoints** (Yêu cầu `Authorization: Bearer <JWT>`):
-  - Tất cả các API còn lại (`/api/users/**`, `/api/groups/**`, `/api/expenses/**`, ...)
+  - `GET /api/auth/me` - Lấy thông tin user hiện tại
+  - `/api/users/**` - Quản lý tài khoản người dùng
+  - `/api/groups/**` - Quản lý nhóm chi tiêu
+  - `/api/groups/{groupId}/members/**` - Quản lý thành viên nhóm
 
 ---
 
@@ -130,35 +154,6 @@ flowchart TD
     end
 ```
 
-### 📋 Các câu lệnh thường dùng cho Dev:
-
-1. **Khi có thay đổi ở Java `@Entity` (Tự động sinh file Migration SQL)**:
-   - **Windows:**
-     ```powershell
-     .\gradlew.bat migrateDev -PmigrationName=add_user_avatar
-     ```
-   - **Linux / macOS:**
-     ```bash
-     ./gradlew migrateDev -PmigrationName=add_user_avatar
-     ```
-   *(Tự động quét diff giữa Entity Java và DB PostgreSQL đang chạy, sinh file timestamp: `src/main/resources/db/migration/VYYYYMMDDHHMMSS__add_user_avatar.sql`)*
-
-2. **Chạy ứng dụng (Flyway nạp migration & Hibernate validate schema)**:
-   - **Windows:**
-     ```powershell
-     .\gradlew.bat bootRun
-     ```
-   - **Linux / macOS:**
-     ```bash
-     ./gradlew bootRun
-     ```
-   *(Mặc định `application-dev.yml` tự động chạy Flyway migrate và Hibernate `ddl-auto=validate`)*
-
-3. **Ghi đè chế độ kiểm định (nếu cần)**:
-   ```powershell
-   .\gradlew.bat bootRun --args='--spring.jpa.hibernate.ddl-auto=validate'
-   ```
-
 ---
 
 ## 👤 Dữ Liệu Khởi Tạo Mẫu (Dev Seed Data)
@@ -166,15 +161,10 @@ flowchart TD
 Môi trường phát triển (`profile: dev`) có sẵn bộ khởi tạo dữ liệu tự động thông qua `DevDataSeeder`.
 
 ### 🔑 Các tài khoản test có sẵn (Mật khẩu chung: `123456`):
-| Username | Email | Role | Mật khẩu |
+| Username | Email | UserRole | Mật khẩu |
 | :--- | :--- | :---: | :---: |
 | `hungtri` | `hung@example.com` | `USER` | `123456` |
 | `khanhnt` | `khanh@example.com` | `USER` | `123456` |
 | `anle` | `an@example.com` | `USER` | `123456` |
 | `binhpham` | `binh@example.com` | `USER` | `123456` |
 | `adminuser` | `admin@example.com` | `ADMIN` | `123456` |
-
-### 📊 Dữ liệu nghiệp vụ thử nghiệm có sẵn:
-- **Nhóm (Groups)**: *Chuyến đi Đà Lạt* (4 thành viên), *Tiền nhà chung cư* (2 thành viên).
-- **Chi phí (Expenses)**: Đặt khách sạn, ăn uống, thuê xe máy, tiền điện nước,...
-- **Công nợ & Lịch sử**: Công nợ chia đều (`debts`), lịch sử thanh toán qua ngân hàng (`settlements`), nhật ký hoạt động (`activities`).

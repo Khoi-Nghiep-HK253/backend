@@ -12,7 +12,7 @@
 ```json
 {
   "status": 200,
-  "message": "Members retrieved successfully",
+  "message": "Group members retrieved successfully",
   "data": [
     {
       "id": 1,
@@ -20,10 +20,9 @@
         "id": 1,
         "username": "hungtri",
         "firstname": "Hùng",
-        "lastname": "Trí",
-        "avatar": "https://..."
+        "lastname": "Trí"
       },
-      "role": "ADMIN",
+      "role": "OWNER",
       "joinedAt": "2026-07-31T15:00:00"
     },
     {
@@ -32,8 +31,7 @@
         "id": 2,
         "username": "khanhnt",
         "firstname": "Khánh",
-        "lastname": "Nguyễn",
-        "avatar": null
+        "lastname": "Nguyễn"
       },
       "role": "MEMBER",
       "joinedAt": "2026-07-31T16:00:00"
@@ -44,20 +42,63 @@
 
 ---
 
-## PATCH `/groups/{groupId}/members/{memberId}/role` — Đổi vai trò thành viên
+## POST `/groups/{groupId}/members` — Thêm thành viên vào nhóm
 
-**Auth required**: ✅ Bearer Token | **Phân quyền**: ADMIN của nhóm
+**Auth required**: ✅ Bearer Token | **Phân quyền**: OWNER của nhóm
 
 ### Request Body
 ```json
 {
-  "role": "ADMIN"
+  "userId": 5
+}
+```
+
+| Field | Type | Required | Mô tả |
+|---|---|---|---|
+| `userId` | integer | ✅ | ID người dùng muốn thêm |
+
+### Response `201 Created`
+```json
+{
+  "status": 201,
+  "message": "Member added to group successfully",
+  "data": {
+    "id": 5,
+    "user": {
+      "id": 5,
+      "username": "newuser",
+      "firstname": "New",
+      "lastname": "User"
+    },
+    "role": "MEMBER",
+    "joinedAt": "2026-07-31T18:00:00"
+  }
+}
+```
+
+### Lỗi thường gặp
+| Status | Trường hợp |
+|---|---|
+| `400` | User đã là thành viên của nhóm |
+| `403` | Không phải OWNER của nhóm |
+| `404` | User hoặc Group không tồn tại |
+
+---
+
+## PUT `/groups/{groupId}/members/{memberId}/role` — Đổi vai trò thành viên
+
+**Auth required**: ✅ Bearer Token | **Phân quyền**: OWNER của nhóm
+
+### Request Body
+```json
+{
+  "role": "OWNER"
 }
 ```
 
 | Field | Type | Values | Mô tả |
 |---|---|---|---|
-| `role` | string | `ADMIN`, `MEMBER` | Vai trò mới |
+| `role` | string | `OWNER`, `MEMBER` | Vai trò mới |
 
 ### Response `200 OK`
 ```json
@@ -66,8 +107,14 @@
   "message": "Member role updated successfully",
   "data": {
     "id": 2,
-    "userId": 2,
-    "role": "ADMIN"
+    "user": {
+      "id": 2,
+      "username": "khanhnt",
+      "firstname": "Khánh",
+      "lastname": "Nguyễn"
+    },
+    "role": "OWNER",
+    "joinedAt": "2026-07-31T16:00:00"
   }
 }
 ```
@@ -75,17 +122,17 @@
 ### Lỗi thường gặp
 | Status | Trường hợp |
 |---|---|
-| `400` | `role` không hợp lệ |
-| `403` | Không phải ADMIN |
+| `400` | `role` không hợp lệ hoặc hạ cấp OWNER duy nhất của nhóm |
+| `403` | Không phải OWNER của nhóm |
 | `404` | Thành viên không tồn tại trong nhóm |
 
 ---
 
 ## DELETE `/groups/{groupId}/members/{memberId}` — Xoá thành viên khỏi nhóm
 
-**Auth required**: ✅ Bearer Token | **Phân quyền**: ADMIN của nhóm hoặc chính thành viên đó (tự rời nhóm)
+**Auth required**: ✅ Bearer Token | **Phân quyền**: OWNER của nhóm hoặc chính thành viên đó (tự rời nhóm)
 
-> ⚠️ Không thể xoá ADMIN duy nhất của nhóm.
+> ⚠️ Không thể xoá OWNER duy nhất của nhóm.
 
 ### Response `200 OK`
 ```json
@@ -99,6 +146,6 @@
 ### Lỗi thường gặp
 | Status | Trường hợp |
 |---|---|
-| `400` | Cố xoá ADMIN cuối cùng của nhóm |
+| `400` | Cố xoá OWNER cuối cùng của nhóm |
 | `403` | Không có quyền xoá thành viên này |
 | `404` | Thành viên không tồn tại |

@@ -2,7 +2,9 @@ package com.hcmut.divvy.config;
 
 import com.hcmut.divvy.entity.*;
 import com.hcmut.divvy.entity.Currency;
+import com.hcmut.divvy.entity.enums.GroupRole;
 import com.hcmut.divvy.entity.enums.InvitationStatus;
+import com.hcmut.divvy.entity.enums.UserRole;
 import com.hcmut.divvy.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -73,31 +75,31 @@ public class DevDataSeeder implements CommandLineRunner {
                 .username("hungtri")
                 .firstname("Hung").lastname("Tri")
                 .phone("0901111111").email("hung@example.com")
-                .hashPassword(defaultPassword).role("USER").build());
+                .hashPassword(defaultPassword).role(UserRole.USER).build());
 
         User khanh = userRepository.save(User.builder()
                 .username("khanhnt")
                 .firstname("Khanh").lastname("Nguyen")
                 .phone("0902222222").email("khanh@example.com")
-                .hashPassword(defaultPassword).role("USER").build());
+                .hashPassword(defaultPassword).role(UserRole.USER).build());
 
         User an = userRepository.save(User.builder()
                 .username("anle")
                 .firstname("An").lastname("Le")
                 .phone("0903333333").email("an@example.com")
-                .hashPassword(defaultPassword).role("USER").build());
+                .hashPassword(defaultPassword).role(UserRole.USER).build());
 
         User binh = userRepository.save(User.builder()
                 .username("binhpham")
                 .firstname("Binh").lastname("Pham")
                 .phone("0904444444").email("binh@example.com")
-                .hashPassword(defaultPassword).role("USER").build());
+                .hashPassword(defaultPassword).role(UserRole.USER).build());
 
         userRepository.save(User.builder()
                 .username("adminuser")
                 .firstname("Admin").lastname("System")
                 .phone("0900000000").email("admin@example.com")
-                .hashPassword(defaultPassword).role("ADMIN").build());
+                .hashPassword(defaultPassword).role(UserRole.ADMIN).build());
 
         log.info("Seeded 5 sample Users (password: 123456).");
 
@@ -121,13 +123,13 @@ public class DevDataSeeder implements CommandLineRunner {
                 .build());
 
         // 4. Seed Group Members
-        groupMemberRepository.save(GroupMember.builder().group(groupDaLat).user(hung).role("ADMIN").build());
-        groupMemberRepository.save(GroupMember.builder().group(groupDaLat).user(khanh).role("MEMBER").build());
-        groupMemberRepository.save(GroupMember.builder().group(groupDaLat).user(an).role("MEMBER").build());
-        groupMemberRepository.save(GroupMember.builder().group(groupDaLat).user(binh).role("MEMBER").build());
+        groupMemberRepository.save(GroupMember.builder().group(groupDaLat).user(hung).role(GroupRole.OWNER).build());
+        groupMemberRepository.save(GroupMember.builder().group(groupDaLat).user(khanh).role(GroupRole.MEMBER).build());
+        groupMemberRepository.save(GroupMember.builder().group(groupDaLat).user(an).role(GroupRole.MEMBER).build());
+        groupMemberRepository.save(GroupMember.builder().group(groupDaLat).user(binh).role(GroupRole.MEMBER).build());
 
-        groupMemberRepository.save(GroupMember.builder().group(groupHouse).user(hung).role("ADMIN").build());
-        groupMemberRepository.save(GroupMember.builder().group(groupHouse).user(khanh).role("MEMBER").build());
+        groupMemberRepository.save(GroupMember.builder().group(groupHouse).user(hung).role(GroupRole.OWNER).build());
+        groupMemberRepository.save(GroupMember.builder().group(groupHouse).user(khanh).role(GroupRole.MEMBER).build());
 
         // 5. Seed Invitations
         groupInvitationRepository.save(GroupInvitation.builder()

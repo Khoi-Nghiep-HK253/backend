@@ -1,35 +1,20 @@
 package com.hcmut.divvy.service;
 
-import com.hcmut.divvy.dto.request.CreateUserRequest;
-import com.hcmut.divvy.dto.request.ForgotPasswordRequest;
-import com.hcmut.divvy.dto.request.LoginRequest;
-import com.hcmut.divvy.dto.request.ResetPasswordRequest;
 import com.hcmut.divvy.dto.response.AuthResponse;
 import com.hcmut.divvy.dto.response.UserResponse;
 import com.hcmut.divvy.dto.response.VerifyTokenResponse;
+import com.hcmut.divvy.service.model.*;
 
 public interface AuthService {
-    AuthResponse register(CreateUserRequest request);
-    AuthResponse login(LoginRequest request);
+    AuthResponse register(RegisterModel model);
+
+    AuthResponse login(LoginModel model);
+
     UserResponse getCurrentUser(String username);
 
-    /**
-     * Initiates the password reset flow by generating a one-time token and
-     * sending a reset link to the user's email. Always returns success to
-     * prevent user enumeration attacks.
-     */
-    void forgotPassword(ForgotPasswordRequest request);
+    void forgotPassword(ForgotPasswordModel model);
 
-    /**
-     * Verifies that a reset token exists, is unused, and has not expired.
-     *
-     * @return masked email and expiry time of the token
-     */
-    VerifyTokenResponse verifyResetToken(String token);
+    VerifyTokenResponse verifyResetToken(VerifyResetTokenModel model);
 
-    /**
-     * Resets the user's password using a valid one-time reset token.
-     * Marks the token as used after a successful reset.
-     */
-    void resetPassword(ResetPasswordRequest request);
+    void resetPassword(ResetPasswordModel model);
 }

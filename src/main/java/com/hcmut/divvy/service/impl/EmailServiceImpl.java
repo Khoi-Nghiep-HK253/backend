@@ -28,7 +28,6 @@ public class EmailServiceImpl implements EmailService {
     @Async
     public void sendPasswordResetEmail(String toEmail, String resetLink) {
         if (!mailEnabled) {
-            // Dev fallback: log the reset link instead of sending a real email
             log.warn("========================================================");
             log.warn("[DEV MODE] Password reset link for {}:", toEmail);
             log.warn("  {}", resetLink);
@@ -50,7 +49,6 @@ public class EmailServiceImpl implements EmailService {
 
         } catch (MessagingException e) {
             log.error("Failed to send password reset email to {}: {}", toEmail, e.getMessage());
-            // Don't rethrow — email failure should not crash the request
         }
     }
 

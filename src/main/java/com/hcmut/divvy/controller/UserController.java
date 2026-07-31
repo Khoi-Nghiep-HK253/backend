@@ -5,7 +5,7 @@ import com.hcmut.divvy.dto.request.ChangePasswordRequest;
 import com.hcmut.divvy.dto.request.CreateUserRequest;
 import com.hcmut.divvy.dto.request.UpdateUserRequest;
 import com.hcmut.divvy.dto.response.UserResponse;
-import com.hcmut.divvy.facade.UserFacade;
+import com.hcmut.divvy.mapper.UserMapper;
 import com.hcmut.divvy.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,23 +21,24 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserFacade userFacade;
+    private final UserService userService;
+    private final UserMapper userMapper;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUsers() {
-        List<UserResponse> users = userFacade.execute(UserService.class, service -> service.findAll());
+        List<UserResponse> users = userService.findAll();
         return ResponseEntity.ok(ApiResponse.ok(users, "Users retrieved successfully"));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable Integer id) {
-        UserResponse user = userFacade.execute(UserService.class, service -> service.findById(id));
+        UserResponse user = userService.findById(userMapper.toGetUserByIdModel(id));
         return ResponseEntity.ok(ApiResponse.ok(user, "User retrieved successfully"));
     }
 
     @PostMapping
     public ResponseEntity<ApiResponse<UserResponse>> createUser(@Valid @RequestBody CreateUserRequest request) {
-        UserResponse created = userFacade.execute(UserService.class, service -> service.create(request));
+        UserResponse created = userService.create(userMapper.toModel(request));
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.created(created, "User created successfully"));
     }
@@ -47,8 +48,7 @@ public class UserController {
             @PathVariable Integer id,
             @RequestBody UpdateUserRequest request,
             Authentication authentication) {
-        UserResponse updated = userFacade.execute(UserService.class,
-                service -> service.updateProfile(id, request, authentication.getName()));
+        UserResponse updated = userService.updateProfile(userMapper.toModel(request, id, authentication.getName()));
         return ResponseEntity.ok(ApiResponse.ok(updated, "User updated successfully"));
     }
 
@@ -57,8 +57,7 @@ public class UserController {
             @PathVariable Integer id,
             @Valid @RequestBody ChangePasswordRequest request,
             Authentication authentication) {
-        userFacade.executeVoid(UserService.class,
-                service -> service.changePassword(id, request, authentication.getName()));
+        userService.changePassword(userMapper.toModel(request, id, authentication.getName()));
         return ResponseEntity.ok(ApiResponse.ok(null, "Password changed successfully"));
     }
 }

@@ -1,6 +1,7 @@
 package com.hcmut.divvy.entity;
 
 import com.hcmut.divvy.common.audit.BaseEntity;
+import com.hcmut.divvy.entity.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -36,7 +37,8 @@ public class User extends BaseEntity {
     @Column(name = "hash_password", nullable = false)
     private String hashPassword;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     @Builder.Default
-    private String role = "USER";
+    private UserRole role = UserRole.USER;
 }
