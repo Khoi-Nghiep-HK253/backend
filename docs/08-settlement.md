@@ -1,18 +1,18 @@
 # ✅ Settlement API
 
-[← Về tổng quan](./README.md)
+[← Back to overview](./README.md)
 
 ---
 
-> ## 📌 Ghi chú
-> Settlement là giao dịch **xác nhận đã trả nợ**. Sau khi tạo Settlement thành công,
-> khoản Debt tương ứng sẽ chuyển sang trạng thái `SETTLED`.
+> ## 📌 Note
+> A Settlement is a transaction **confirming debt payment**. After a Settlement is successfully created,
+> the corresponding Debt status will automatically update to `SETTLED`.
 
 ---
 
-## POST `/groups/{groupId}/settlements` — Ghi nhận thanh toán nợ
+## POST `/groups/{groupId}/settlements` — Record debt payment
 
-**Auth required**: ✅ Bearer Token | **Phân quyền**: Thành viên của nhóm (người nợ)
+**Auth required**: ✅ Bearer Token | **Authorization**: Group member (debtor or creditor)
 
 ### Request Body
 ```json
@@ -20,20 +20,20 @@
   "debtId": 5,
   "amount": "250000.00",
   "method": "TRANSFER",
-  "note": "Chuyển khoản qua MB Bank lúc 10h sáng",
+  "note": "Bank transfer via MB Bank at 10 AM",
   "paidAt": "2026-08-02T10:00:00"
 }
 ```
 
-| Field | Type | Required | Mô tả |
+| Field | Type | Required | Description |
 |---|---|---|---|
-| `debtId` | integer | ✅ | ID khoản nợ cần thanh toán |
-| `amount` | decimal | ✅ | Số tiền thanh toán |
-| `method` | string | ❌ | Phương thức: `CASH`, `TRANSFER` (mặc định: `CASH`) |
-| `note` | string | ❌ | Ghi chú thêm |
-| `paidAt` | datetime | ❌ | Thời điểm thanh toán (mặc định: now) |
+| `debtId` | integer | ✅ | ID of the debt being settled |
+| `amount` | decimal | ✅ | Payment amount |
+| `method` | string | ❌ | Payment method: `CASH`, `TRANSFER` (default: `CASH`) |
+| `note` | string | ❌ | Additional note |
+| `paidAt` | datetime | ❌ | Payment timestamp (default: current time) |
 
-> **Validation**: `amount` phải <= số tiền còn nợ trong `debtId`
+> **Validation**: `amount` must be <= remaining debt amount in `debtId`
 
 ### Response `201 Created`
 ```json
@@ -50,36 +50,36 @@
     "toUser":   { "id": 1, "username": "hungtri" },
     "amount": "250000.00",
     "method": "TRANSFER",
-    "note": "Chuyển khoản qua MB Bank lúc 10h sáng",
+    "note": "Bank transfer via MB Bank at 10 AM",
     "paidAt": "2026-08-02T10:00:00",
     "createdAt": "2026-08-02T10:05:00"
   }
 }
 ```
 
-### Lỗi thường gặp
-| Status | Trường hợp |
+### Common Errors
+| Status | Cause |
 |---|---|
-| `400` | Khoản nợ đã được thanh toán (`SETTLED`) |
-| `400` | `amount` vượt quá số tiền còn nợ |
-| `403` | Không phải người trong khoản nợ này |
-| `404` | `debtId` không tồn tại |
+| `400` | Debt is already settled (`SETTLED`) |
+| `400` | `amount` exceeds remaining debt amount |
+| `403` | User is not involved in this debt |
+| `404` | `debtId` does not exist |
 
 ---
 
-## GET `/groups/{groupId}/settlements` — Lịch sử thanh toán của nhóm
+## GET `/groups/{groupId}/settlements` — Group settlement history
 
-**Auth required**: ✅ Bearer Token | **Phân quyền**: Thành viên của nhóm
+**Auth required**: ✅ Bearer Token | **Authorization**: Group member
 
 ### Query Parameters
-| Param | Type | Mô tả |
+| Param | Type | Description |
 |---|---|---|
-| `fromUserId` | integer | Lọc theo người đã trả |
-| `toUserId` | integer | Lọc theo người nhận tiền |
-| `fromDate` | date | Lọc từ ngày |
-| `toDate` | date | Lọc đến ngày |
-| `page` | integer | Trang (mặc định: 0) |
-| `size` | integer | Số item (mặc định: 20) |
+| `fromUserId` | integer | Filter by payer user ID |
+| `toUserId` | integer | Filter by payee user ID |
+| `fromDate` | date | Filter from date (`YYYY-MM-DD`) |
+| `toDate` | date | Filter to date (`YYYY-MM-DD`) |
+| `page` | integer | Page number (default: 0) |
+| `size` | integer | Items per page (default: 20) |
 
 ### Response `200 OK`
 ```json
@@ -107,9 +107,9 @@
 
 ---
 
-## GET `/groups/{groupId}/settlements/{settlementId}` — Chi tiết giao dịch thanh toán
+## GET `/groups/{groupId}/settlements/{settlementId}` — Get settlement detail
 
-**Auth required**: ✅ Bearer Token | **Phân quyền**: Thành viên của nhóm
+**Auth required**: ✅ Bearer Token | **Authorization**: Group member
 
 ### Response `200 OK`
 ```json
@@ -119,12 +119,12 @@
   "data": {
     "id": 8,
     "debt": { "id": 5, "amount": "250000.00" },
-    "group": { "id": 10, "name": "Du lịch Đà Lạt 2026" },
+    "group": { "id": 10, "name": "Summer Trip 2026" },
     "fromUser": { "id": 3, "username": "anle" },
     "toUser":   { "id": 1, "username": "hungtri" },
     "amount": "250000.00",
     "method": "TRANSFER",
-    "note": "Chuyển khoản qua MB Bank lúc 10h sáng",
+    "note": "Bank transfer via MB Bank at 10 AM",
     "paidAt": "2026-08-02T10:00:00",
     "createdAt": "2026-08-02T10:05:00"
   }

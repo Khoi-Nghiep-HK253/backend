@@ -1,12 +1,12 @@
 # 🔐 Authentication API
 
-[← Về tổng quan](./README.md)
+[← Back to overview](./README.md)
 
 ---
 
-## POST `/auth/register` — Đăng ký tài khoản
+## POST `/auth/register` — Register a new account
 
-**Auth required**: ❌ Không
+**Auth required**: ❌ No
 
 ### Request Body
 ```json
@@ -14,20 +14,20 @@
   "username": "hungtri",
   "email": "hung@example.com",
   "password": "123456",
-  "firstname": "Hùng",
-  "lastname": "Trí",
+  "firstname": "Hung",
+  "lastname": "Tri",
   "phone": "0912345678"
 }
 ```
 
-| Field | Type | Required | Mô tả |
+| Field | Type | Required | Description |
 |---|---|---|---|
-| `username` | string | ✅ | 3–50 ký tự, không dấu cách |
-| `email` | string | ✅ | Định dạng email hợp lệ |
-| `password` | string | ✅ | Tối thiểu 6 ký tự |
-| `firstname` | string | ❌ | Tên |
-| `lastname` | string | ❌ | Họ |
-| `phone` | string | ❌ | Số điện thoại |
+| `username` | string | ✅ | 3–50 characters, no spaces |
+| `email` | string | ✅ | Valid email format |
+| `password` | string | ✅ | Minimum 6 characters |
+| `firstname` | string | ❌ | First name |
+| `lastname` | string | ❌ | Last name |
+| `phone` | string | ❌ | Phone number |
 
 ### Response `201 Created`
 ```json
@@ -41,25 +41,25 @@
       "id": 1,
       "username": "hungtri",
       "email": "hung@example.com",
-      "firstname": "Hùng",
-      "lastname": "Trí",
+      "firstname": "Hung",
+      "lastname": "Tri",
       "phone": "0912345678"
     }
   }
 }
 ```
 
-### Lỗi thường gặp
-| Status | Trường hợp |
+### Common Errors
+| Status | Cause |
 |---|---|
-| `400` | Thiếu field bắt buộc, sai định dạng email |
-| `409` | Username hoặc email đã tồn tại |
+| `400` | Missing required field or invalid email format |
+| `409` | Username or email already exists |
 
 ---
 
-## POST `/auth/login` — Đăng nhập
+## POST `/auth/login` — Login
 
-**Auth required**: ❌ Không
+**Auth required**: ❌ No
 
 ### Request Body
 ```json
@@ -69,10 +69,10 @@
 }
 ```
 
-| Field | Type | Required | Mô tả |
+| Field | Type | Required | Description |
 |---|---|---|---|
-| `usernameOrEmail` | string | ✅ | Username hoặc email |
-| `password` | string | ✅ | Mật khẩu |
+| `usernameOrEmail` | string | ✅ | Username or email address |
+| `password` | string | ✅ | Account password |
 
 ### Response `200 OK`
 ```json
@@ -86,21 +86,21 @@
       "id": 1,
       "username": "hungtri",
       "email": "hung@example.com",
-      "firstname": "Hùng",
-      "lastname": "Trí"
+      "firstname": "Hung",
+      "lastname": "Tri"
     }
   }
 }
 ```
 
-### Lỗi thường gặp
-| Status | Trường hợp |
+### Common Errors
+| Status | Cause |
 |---|---|
-| `401` | Sai username/email hoặc mật khẩu |
+| `401` | Incorrect username/email or password |
 
 ---
 
-## GET `/auth/me` — Lấy thông tin user hiện tại
+## GET `/auth/me` — Get current user profile
 
 **Auth required**: ✅ Bearer Token
 
@@ -113,44 +113,44 @@
     "id": 1,
     "username": "hungtri",
     "email": "hung@example.com",
-    "firstname": "Hùng",
-    "lastname": "Trí",
+    "firstname": "Hung",
+    "lastname": "Tri",
     "phone": "0912345678"
   }
 }
 ```
 
-### Lỗi thường gặp
-| Status | Trường hợp |
+### Common Errors
+| Status | Cause |
 |---|---|
-| `401` | Token không hợp lệ hoặc hết hạn |
+| `401` | Token invalid or expired |
 
 ---
 
-## Luồng quên mật khẩu
+## Forgot Password Flow
 
 ```
-[User nhập email]
+[User enters email]
        ↓
 POST /auth/forgot-password
        ↓
-Hệ thống gửi email chứa link reset (có token)
+System sends email with reset link (containing token)
        ↓
-[User nhấn link → nhập mật khẩu mới]
+[User clicks link → enters new password]
        ↓
 POST /auth/reset-password  (token + newPassword)
        ↓
-Mật khẩu được đổi, token bị vô hiệu hoá
+Password changed, token invalidated
 ```
 
 ---
 
-## POST `/auth/forgot-password` — Yêu cầu đặt lại mật khẩu
+## POST `/auth/forgot-password` — Request password reset
 
-**Auth required**: ❌ Không
+**Auth required**: ❌ No
 
-> Hệ thống sẽ gửi email chứa đường dẫn reset mật khẩu đến địa chỉ email được cung cấp.
-> **Để tránh lộ thông tin**, response luôn trả `200 OK` dù email có tồn tại hay không.
+> The system will send a password reset link to the provided email address.
+> **To prevent user enumeration**, the response is always `200 OK` regardless of whether the email exists.
 
 ### Request Body
 ```json
@@ -159,9 +159,9 @@ Mật khẩu được đổi, token bị vô hiệu hoá
 }
 ```
 
-| Field | Type | Required | Mô tả |
+| Field | Type | Required | Description |
 |---|---|---|---|
-| `email` | string | ✅ | Địa chỉ email đã đăng ký |
+| `email` | string | ✅ | Registered email address |
 
 ### Response `200 OK`
 ```json
@@ -172,26 +172,25 @@ Mật khẩu được đổi, token bị vô hiệu hoá
 }
 ```
 
-### Lỗi thường gặp
-| Status | Trường hợp |
+### Common Errors
+| Status | Cause |
 |---|---|
-| `400` | Sai định dạng email |
-| `429` | Gửi quá nhiều yêu cầu trong thời gian ngắn (rate limit) |
+| `400` | Invalid email format |
 
 ---
 
-## GET `/auth/reset-password/verify` — Kiểm tra token hợp lệ
+## GET `/auth/reset-password/verify` — Verify reset token
 
-**Auth required**: ❌ Không
+**Auth required**: ❌ No
 
-> Dùng để frontend kiểm tra token còn hiệu lực trước khi hiển thị form nhập mật khẩu mới.
+> Used by the frontend to validate a token before displaying the new password form.
 
 ### Query Parameters
-| Param | Type | Required | Mô tả |
+| Param | Type | Required | Description |
 |---|---|---|---|
-| `token` | string | ✅ | Token từ link trong email |
+| `token` | string | ✅ | Token from the reset email link |
 
-### Response `200 OK` — Token hợp lệ
+### Response `200 OK` — Token is valid
 ```json
 {
   "status": 200,
@@ -203,20 +202,19 @@ Mật khẩu được đổi, token bị vô hiệu hoá
 }
 ```
 
-### Lỗi thường gặp
-| Status | Trường hợp |
+### Common Errors
+| Status | Cause |
 |---|---|
-| `400` | Token không hợp lệ hoặc đã được sử dụng |
-| `410` | Token đã hết hạn |
+| `400` | Token invalid or already used |
+| `410` | Token has expired |
 
 ---
 
-## POST `/auth/reset-password` — Đặt lại mật khẩu mới
+## POST `/auth/reset-password` — Set new password
 
-**Auth required**: ❌ Không
+**Auth required**: ❌ No
 
-> Sau khi đặt lại thành công, token bị **vô hiệu hoá ngay lập tức**.
-> Tất cả JWT đang active của user cũng nên bị **invalidate** (nếu có blacklist).
+> After a successful reset, the token is **immediately invalidated** and cannot be reused.
 
 ### Request Body
 ```json
@@ -227,11 +225,11 @@ Mật khẩu được đổi, token bị vô hiệu hoá
 }
 ```
 
-| Field | Type | Required | Mô tả |
+| Field | Type | Required | Description |
 |---|---|---|---|
-| `token` | string | ✅ | Token từ link trong email |
-| `newPassword` | string | ✅ | Mật khẩu mới (tối thiểu 6 ký tự) |
-| `confirmPassword` | string | ✅ | Nhập lại mật khẩu mới để xác nhận |
+| `token` | string | ✅ | Token from the reset email link |
+| `newPassword` | string | ✅ | New password (minimum 6 characters) |
+| `confirmPassword` | string | ✅ | Confirmation of the new password |
 
 ### Response `200 OK`
 ```json
@@ -242,10 +240,10 @@ Mật khẩu được đổi, token bị vô hiệu hoá
 }
 ```
 
-### Lỗi thường gặp
-| Status | Trường hợp |
+### Common Errors
+| Status | Cause |
 |---|---|
-| `400` | `newPassword` và `confirmPassword` không khớp |
-| `400` | Token không hợp lệ hoặc đã được sử dụng |
-| `400` | Mật khẩu mới trùng với mật khẩu cũ |
-| `410` | Token đã hết hạn — yêu cầu gửi lại email |
+| `400` | `newPassword` and `confirmPassword` do not match |
+| `400` | Token invalid or already used |
+| `400` | New password is the same as the old password |
+| `410` | Token has expired — request a new reset email |

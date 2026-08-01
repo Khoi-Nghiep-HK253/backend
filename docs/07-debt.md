@@ -1,24 +1,24 @@
 # 🔴 Debt API
 
-[← Về tổng quan](./README.md)
+[← Back to overview](./README.md)
 
 ---
 
-> ## 📌 Ghi chú
-> Debt được **tự động tạo** khi có Expense mới. Dev **không tạo Debt thủ công**.
-> API này chỉ phục vụ **đọc & theo dõi** công nợ.
+> ## 📌 Note
+> Debts are **automatically generated** when an Expense is created. Developers **do not create Debts manually**.
+> This API is strictly for **reading & tracking** debts.
 
 ---
 
-## GET `/groups/{groupId}/debts` — Danh sách công nợ của nhóm
+## GET `/groups/{groupId}/debts` — List group debts
 
-**Auth required**: ✅ Bearer Token | **Phân quyền**: Thành viên của nhóm
+**Auth required**: ✅ Bearer Token | **Authorization**: Group member
 
 ### Query Parameters
-| Param | Type | Mô tả |
+| Param | Type | Description |
 |---|---|---|
-| `status` | string | Lọc theo trạng thái: `PENDING`, `SETTLED`, `CANCELLED` |
-| `userId` | integer | Lọc theo user (là người nợ hoặc chủ nợ) |
+| `status` | string | Filter by status: `PENDING`, `SETTLED`, `CANCELLED` |
+| `userId` | integer | Filter by user (either as debtor or creditor) |
 
 ### Response `200 OK`
 ```json
@@ -30,10 +30,10 @@
       "id": 5,
       "expense": {
         "id": 20,
-        "description": "Ăn lẩu thái tối ngày 1"
+        "description": "Thai hotpot dinner day 1"
       },
-      "fromUser": { "id": 3, "username": "anle", "fullname": "Lê An" },
-      "toUser":   { "id": 1, "username": "hungtri", "fullname": "Trí Hùng" },
+      "fromUser": { "id": 3, "username": "anle", "fullname": "An Le" },
+      "toUser":   { "id": 1, "username": "hungtri", "fullname": "Tri Hung" },
       "amount": "250000.00",
       "status": "PENDING",
       "createdAt": "2026-07-31T15:00:00"
@@ -44,11 +44,11 @@
 
 ---
 
-## GET `/groups/{groupId}/debts/summary` — Tổng hợp công nợ nhóm
+## GET `/groups/{groupId}/debts/summary` — Group debt summary
 
-**Auth required**: ✅ Bearer Token | **Phân quyền**: Thành viên của nhóm
+**Auth required**: ✅ Bearer Token | **Authorization**: Group member
 
-> Trả về bảng tóm tắt: "User A nợ User B tổng bao nhiêu" (đã gộp từ nhiều expense).
+> Returns a summary table: "User A owes User B total amount" (aggregated across all expenses).
 
 ### Response `200 OK`
 ```json
@@ -76,11 +76,11 @@
 
 ---
 
-## GET `/groups/{groupId}/debts/me` — Công nợ của tôi trong nhóm
+## GET `/groups/{groupId}/debts/me` — My debts in group
 
-**Auth required**: ✅ Bearer Token | **Phân quyền**: Thành viên của nhóm
+**Auth required**: ✅ Bearer Token | **Authorization**: Group member
 
-> Chỉ trả về các debt mà user hiện tại liên quan (là từ hoặc tới).
+> Returns only debts involving the current authenticated user (either as debtor or creditor).
 
 ### Response `200 OK`
 ```json
@@ -102,9 +102,9 @@
 
 ---
 
-## GET `/groups/{groupId}/debts/{debtId}` — Chi tiết một khoản nợ
+## GET `/groups/{groupId}/debts/{debtId}` — Get debt detail
 
-**Auth required**: ✅ Bearer Token | **Phân quyền**: Thành viên của nhóm
+**Auth required**: ✅ Bearer Token | **Authorization**: Group member
 
 ### Response `200 OK`
 ```json
@@ -115,7 +115,7 @@
     "id": 5,
     "expense": {
       "id": 20,
-      "description": "Ăn lẩu thái tối ngày 1",
+      "description": "Thai hotpot dinner day 1",
       "expenseDate": "2026-08-01"
     },
     "fromUser": { "id": 3, "username": "anle" },

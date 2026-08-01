@@ -1,12 +1,12 @@
 # 🙋 Group Member API
 
-[← Về tổng quan](./README.md)
+[← Back to overview](./README.md)
 
 ---
 
-## GET `/groups/{groupId}/members` — Danh sách thành viên
+## GET `/groups/{groupId}/members` — List group members
 
-**Auth required**: ✅ Bearer Token | **Phân quyền**: Thành viên của nhóm
+**Auth required**: ✅ Bearer Token | **Authorization**: Group member
 
 ### Response `200 OK`
 ```json
@@ -19,8 +19,8 @@
       "user": {
         "id": 1,
         "username": "hungtri",
-        "firstname": "Hùng",
-        "lastname": "Trí"
+        "firstname": "Hung",
+        "lastname": "Tri"
       },
       "role": "OWNER",
       "joinedAt": "2026-07-31T15:00:00"
@@ -30,8 +30,8 @@
       "user": {
         "id": 2,
         "username": "khanhnt",
-        "firstname": "Khánh",
-        "lastname": "Nguyễn"
+        "firstname": "Khanh",
+        "lastname": "Nguyen"
       },
       "role": "MEMBER",
       "joinedAt": "2026-07-31T16:00:00"
@@ -42,9 +42,9 @@
 
 ---
 
-## POST `/groups/{groupId}/members` — Thêm thành viên vào nhóm
+## POST `/groups/{groupId}/members` — Add a member to the group
 
-**Auth required**: ✅ Bearer Token | **Phân quyền**: OWNER của nhóm
+**Auth required**: ✅ Bearer Token | **Authorization**: Group OWNER
 
 ### Request Body
 ```json
@@ -53,9 +53,9 @@
 }
 ```
 
-| Field | Type | Required | Mô tả |
+| Field | Type | Required | Description |
 |---|---|---|---|
-| `userId` | integer | ✅ | ID người dùng muốn thêm |
+| `userId` | integer | ✅ | ID of the user to add |
 
 ### Response `201 Created`
 ```json
@@ -76,18 +76,18 @@
 }
 ```
 
-### Lỗi thường gặp
-| Status | Trường hợp |
+### Common Errors
+| Status | Cause |
 |---|---|
-| `400` | User đã là thành viên của nhóm |
-| `403` | Không phải OWNER của nhóm |
-| `404` | User hoặc Group không tồn tại |
+| `400` | User is already a member of the group |
+| `403` | Caller is not the group OWNER |
+| `404` | User or group does not exist |
 
 ---
 
-## PUT `/groups/{groupId}/members/{memberId}/role` — Đổi vai trò thành viên
+## PUT `/groups/{groupId}/members/{memberId}/role` — Update member role
 
-**Auth required**: ✅ Bearer Token | **Phân quyền**: OWNER của nhóm
+**Auth required**: ✅ Bearer Token | **Authorization**: Group OWNER
 
 ### Request Body
 ```json
@@ -96,9 +96,9 @@
 }
 ```
 
-| Field | Type | Values | Mô tả |
+| Field | Type | Values | Description |
 |---|---|---|---|
-| `role` | string | `OWNER`, `MEMBER` | Vai trò mới |
+| `role` | string | `OWNER`, `MEMBER` | New role to assign |
 
 ### Response `200 OK`
 ```json
@@ -110,8 +110,8 @@
     "user": {
       "id": 2,
       "username": "khanhnt",
-      "firstname": "Khánh",
-      "lastname": "Nguyễn"
+      "firstname": "Khanh",
+      "lastname": "Nguyen"
     },
     "role": "OWNER",
     "joinedAt": "2026-07-31T16:00:00"
@@ -119,20 +119,20 @@
 }
 ```
 
-### Lỗi thường gặp
-| Status | Trường hợp |
+### Common Errors
+| Status | Cause |
 |---|---|
-| `400` | `role` không hợp lệ hoặc hạ cấp OWNER duy nhất của nhóm |
-| `403` | Không phải OWNER của nhóm |
-| `404` | Thành viên không tồn tại trong nhóm |
+| `400` | Invalid role value, or attempting to downgrade the sole OWNER |
+| `403` | Caller is not the group OWNER |
+| `404` | Member record does not exist in this group |
 
 ---
 
-## DELETE `/groups/{groupId}/members/{memberId}` — Xoá thành viên khỏi nhóm
+## DELETE `/groups/{groupId}/members/{memberId}` — Remove member / leave group
 
-**Auth required**: ✅ Bearer Token | **Phân quyền**: OWNER của nhóm hoặc chính thành viên đó (tự rời nhóm)
+**Auth required**: ✅ Bearer Token | **Authorization**: Group OWNER, or the member themselves (to leave)
 
-> ⚠️ Không thể xoá OWNER duy nhất của nhóm.
+> ⚠️ The sole OWNER of a group cannot be removed.
 
 ### Response `200 OK`
 ```json
@@ -143,9 +143,9 @@
 }
 ```
 
-### Lỗi thường gặp
-| Status | Trường hợp |
+### Common Errors
+| Status | Cause |
 |---|---|
-| `400` | Cố xoá OWNER cuối cùng của nhóm |
-| `403` | Không có quyền xoá thành viên này |
-| `404` | Thành viên không tồn tại |
+| `400` | Attempting to remove the last OWNER of the group |
+| `403` | Caller is not authorized to remove this member |
+| `404` | Member record does not exist |

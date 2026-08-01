@@ -1,35 +1,35 @@
 # 👥 Group API
 
-[← Về tổng quan](./README.md)
+[← Back to overview](./README.md)
 
 ---
 
-## POST `/groups` — Tạo nhóm mới
+## POST `/groups` — Create a new group
 
 **Auth required**: ✅ Bearer Token
 
-> Người tạo nhóm tự động trở thành **ADMIN** của nhóm.
+> The creator is automatically assigned the **OWNER** role in the new group.
 
 ### Request Body
 ```json
 {
-  "name": "Du lịch Đà Lạt 2026",
+  "name": "Summer Trip 2026",
   "categoryId": 1,
   "defaultCurrencyId": 1,
-  "note": "Chuyến đi hè của team",
+  "note": "Team summer outing",
   "startDate": "2026-08-01",
   "endDate": "2026-08-05"
 }
 ```
 
-| Field | Type | Required | Mô tả |
+| Field | Type | Required | Description |
 |---|---|---|---|
-| `name` | string | ✅ | Tên nhóm, tối đa 150 ký tự |
-| `categoryId` | integer | ❌ | ID danh mục nhóm |
-| `defaultCurrencyId` | integer | ❌ | ID đơn vị tiền tệ mặc định |
-| `note` | string | ❌ | Ghi chú về nhóm |
-| `startDate` | date | ❌ | Ngày bắt đầu (`YYYY-MM-DD`) |
-| `endDate` | date | ❌ | Ngày kết thúc (`YYYY-MM-DD`) |
+| `name` | string | ✅ | Group name, max 150 characters |
+| `categoryId` | integer | ❌ | Group category ID |
+| `defaultCurrencyId` | integer | ❌ | Default currency ID |
+| `note` | string | ❌ | Group note |
+| `startDate` | date | ❌ | Start date (`YYYY-MM-DD`) |
+| `endDate` | date | ❌ | End date (`YYYY-MM-DD`) |
 
 ### Response `201 Created`
 ```json
@@ -38,10 +38,10 @@
   "message": "Group created successfully",
   "data": {
     "id": 10,
-    "name": "Du lịch Đà Lạt 2026",
-    "category": { "id": 1, "name": "Du lịch" },
+    "name": "Summer Trip 2026",
+    "category": { "id": 1, "name": "Travel" },
     "defaultCurrency": { "id": 1, "code": "VND", "symbol": "₫" },
-    "note": "Chuyến đi hè của team",
+    "note": "Team summer outing",
     "startDate": "2026-08-01",
     "endDate": "2026-08-05",
     "createdAt": "2026-07-31T15:00:00"
@@ -51,17 +51,17 @@
 
 ---
 
-## GET `/groups` — Lấy danh sách nhóm của tôi
+## GET `/groups` — List my groups
 
 **Auth required**: ✅ Bearer Token
 
-> Chỉ trả về các nhóm mà user hiện tại là thành viên.
+> Returns only groups where the current user is a member.
 
 ### Query Parameters
-| Param | Type | Mô tả |
+| Param | Type | Description |
 |---|---|---|
-| `page` | integer | Trang hiện tại (mặc định: 0) |
-| `size` | integer | Số item mỗi trang (mặc định: 20) |
+| `page` | integer | Page number (default: 0) |
+| `size` | integer | Items per page (default: 20) |
 
 ### Response `200 OK`
 ```json
@@ -72,8 +72,8 @@
     "content": [
       {
         "id": 10,
-        "name": "Du lịch Đà Lạt 2026",
-        "category": { "id": 1, "name": "Du lịch" },
+        "name": "Summer Trip 2026",
+        "category": { "id": 1, "name": "Travel" },
         "defaultCurrency": { "id": 1, "code": "VND", "symbol": "₫" },
         "memberCount": 4,
         "startDate": "2026-08-01",
@@ -90,9 +90,9 @@
 
 ---
 
-## GET `/groups/{groupId}` — Lấy chi tiết nhóm
+## GET `/groups/{groupId}` — Get group details
 
-**Auth required**: ✅ Bearer Token | **Phân quyền**: Thành viên của nhóm
+**Auth required**: ✅ Bearer Token | **Authorization**: Group member
 
 ### Response `200 OK`
 ```json
@@ -101,10 +101,10 @@
   "message": "Group retrieved successfully",
   "data": {
     "id": 10,
-    "name": "Du lịch Đà Lạt 2026",
-    "category": { "id": 1, "name": "Du lịch" },
+    "name": "Summer Trip 2026",
+    "category": { "id": 1, "name": "Travel" },
     "defaultCurrency": { "id": 1, "code": "VND", "symbol": "₫" },
-    "note": "Chuyến đi hè của team",
+    "note": "Team summer outing",
     "startDate": "2026-08-01",
     "endDate": "2026-08-05",
     "memberCount": 4,
@@ -117,20 +117,20 @@
 
 ---
 
-## PUT `/groups/{groupId}` — Cập nhật nhóm
+## PUT `/groups/{groupId}` — Update group
 
-**Auth required**: ✅ Bearer Token | **Phân quyền**: ADMIN của nhóm
+**Auth required**: ✅ Bearer Token | **Authorization**: Group OWNER
 
 ### Request Body
 ```json
 {
-  "name": "Du lịch Đà Lạt (Update)",
-  "note": "Cập nhật thêm ghi chú",
+  "name": "Summer Trip 2026 (Updated)",
+  "note": "Added extra notes",
   "endDate": "2026-08-07"
 }
 ```
 
-> Chỉ cần gửi các field muốn thay đổi.
+> Only include the fields you want to change (partial update).
 
 ### Response `200 OK`
 ```json
@@ -143,11 +143,11 @@
 
 ---
 
-## DELETE `/groups/{groupId}` — Xoá nhóm
+## DELETE `/groups/{groupId}` — Delete group
 
-**Auth required**: ✅ Bearer Token | **Phân quyền**: ADMIN của nhóm
+**Auth required**: ✅ Bearer Token | **Authorization**: Group OWNER
 
-> ⚠️ Xoá nhóm sẽ xoá toàn bộ dữ liệu liên quan (chi tiêu, công nợ...). Cân nhắc dùng soft-delete.
+> ⚠️ Deleting a group permanently removes all associated data (expenses, debts, members, invitations). This action is irreversible.
 
 ### Response `200 OK`
 ```json
@@ -158,8 +158,8 @@
 }
 ```
 
-### Lỗi thường gặp
-| Status | Trường hợp |
+### Common Errors
+| Status | Cause |
 |---|---|
-| `403` | Không phải ADMIN của nhóm |
-| `404` | Nhóm không tồn tại |
+| `403` | Caller is not the group OWNER |
+| `404` | Group does not exist |

@@ -1,48 +1,48 @@
 # 📋 Activity API
 
-[← Về tổng quan](./README.md)
+[← Back to overview](./README.md)
 
 ---
 
-> ## 📌 Ghi chú
-> Activity được **tự động ghi** bởi hệ thống sau mỗi thao tác quan trọng.
-> API này chỉ phục vụ **đọc** — không có endpoint tạo/sửa/xoá.
+> ## 📌 Note
+> Activities are **automatically recorded** by the system after key actions.
+> This API is strictly for **read** operations — there are no endpoints for creating, updating, or deleting activities.
 
 ---
 
-## Danh sách `entityType` và `topic`
+## `entityType` and `topic` Reference
 
-| entityType | topic | Trigger khi nào |
+| entityType | topic | Trigger condition |
 |---|---|---|
-| `GROUP` | `GROUP_CREATED` | Tạo nhóm mới |
-| `GROUP` | `GROUP_UPDATED` | Cập nhật thông tin nhóm |
-| `GROUP_MEMBER` | `MEMBER_JOINED` | Thành viên tham gia nhóm |
-| `GROUP_MEMBER` | `MEMBER_LEFT` | Thành viên rời nhóm |
-| `GROUP_MEMBER` | `MEMBER_ROLE_CHANGED` | Đổi vai trò thành viên |
-| `INVITATION` | `INVITATION_SENT` | Gửi lời mời |
-| `INVITATION` | `INVITATION_ACCEPTED` | Chấp nhận lời mời |
-| `INVITATION` | `INVITATION_DECLINED` | Từ chối lời mời |
-| `INVITATION` | `INVITATION_REVOKED` | Thu hồi lời mời |
-| `EXPENSE` | `EXPENSE_CREATED` | Tạo khoản chi mới |
-| `EXPENSE` | `EXPENSE_UPDATED` | Cập nhật khoản chi |
-| `EXPENSE` | `EXPENSE_DELETED` | Xoá khoản chi |
-| `SETTLEMENT` | `SETTLEMENT_CREATED` | Ghi nhận thanh toán |
+| `GROUP` | `GROUP_CREATED` | New group created |
+| `GROUP` | `GROUP_UPDATED` | Group details updated |
+| `GROUP_MEMBER` | `MEMBER_JOINED` | Member joined group |
+| `GROUP_MEMBER` | `MEMBER_LEFT` | Member left group |
+| `GROUP_MEMBER` | `MEMBER_ROLE_CHANGED` | Member role updated |
+| `INVITATION` | `INVITATION_SENT` | Invitation sent |
+| `INVITATION` | `INVITATION_ACCEPTED` | Invitation accepted |
+| `INVITATION` | `INVITATION_DECLINED` | Invitation declined |
+| `INVITATION` | `INVITATION_REVOKED` | Invitation revoked |
+| `EXPENSE` | `EXPENSE_CREATED` | New expense created |
+| `EXPENSE` | `EXPENSE_UPDATED` | Expense updated |
+| `EXPENSE` | `EXPENSE_DELETED` | Expense deleted |
+| `SETTLEMENT` | `SETTLEMENT_CREATED` | Debt payment recorded |
 
 ---
 
-## GET `/groups/{groupId}/activities` — Lịch sử hoạt động nhóm
+## GET `/groups/{groupId}/activities` — Group activity history
 
-**Auth required**: ✅ Bearer Token | **Phân quyền**: Thành viên của nhóm
+**Auth required**: ✅ Bearer Token | **Authorization**: Group member
 
 ### Query Parameters
-| Param | Type | Mô tả |
+| Param | Type | Description |
 |---|---|---|
-| `page` | integer | Trang (mặc định: 0) |
-| `size` | integer | Số item (mặc định: 30) |
-| `entityType` | string | Lọc theo loại entity (`EXPENSE`, `SETTLEMENT`...) |
-| `userId` | integer | Lọc theo người thực hiện |
-| `fromDate` | date | Lọc từ ngày |
-| `toDate` | date | Lọc đến ngày |
+| `page` | integer | Page number (default: 0) |
+| `size` | integer | Items per page (default: 30) |
+| `entityType` | string | Filter by entity type (`EXPENSE`, `SETTLEMENT`, etc.) |
+| `userId` | integer | Filter by performing user ID |
+| `fromDate` | date | Filter from date (`YYYY-MM-DD`) |
+| `toDate` | date | Filter to date (`YYYY-MM-DD`) |
 
 ### Response `200 OK`
 ```json
@@ -53,20 +53,20 @@
     "content": [
       {
         "id": 101,
-        "user": { "id": 1, "username": "hungtri", "fullname": "Trí Hùng" },
+        "user": { "id": 1, "username": "hungtri", "fullname": "Tri Hung" },
         "entityType": "EXPENSE",
         "entityId": 20,
         "topic": "EXPENSE_CREATED",
-        "description": "hungtri đã tạo khoản chi \"Ăn lẩu thái\" — 1,000,000 ₫",
+        "description": "hungtri created expense \"Thai hotpot dinner\" — 1,000,000 ₫",
         "createdAt": "2026-08-01T20:30:00"
       },
       {
         "id": 100,
-        "user": { "id": 3, "username": "anle", "fullname": "Lê An" },
+        "user": { "id": 3, "username": "anle", "fullname": "An Le" },
         "entityType": "SETTLEMENT",
         "entityId": 8,
         "topic": "SETTLEMENT_CREATED",
-        "description": "anle đã thanh toán 250,000 ₫ cho hungtri",
+        "description": "anle paid 250,000 ₫ to hungtri",
         "createdAt": "2026-08-02T10:05:00"
       }
     ],
@@ -80,17 +80,17 @@
 
 ---
 
-## GET `/users/{userId}/activities` — Lịch sử hoạt động cá nhân
+## GET `/users/{userId}/activities` — User activity history
 
 **Auth required**: ✅ Bearer Token
 
-> Lịch sử các thao tác của một user cụ thể (có thể xem của chính mình).
+> Activity history for a specific user.
 
 ### Query Parameters
-| Param | Type | Mô tả |
+| Param | Type | Description |
 |---|---|---|
-| `page` | integer | Trang (mặc định: 0) |
-| `size` | integer | Số item (mặc định: 20) |
+| `page` | integer | Page number (default: 0) |
+| `size` | integer | Items per page (default: 20) |
 
 ### Response `200 OK`
 ```json
@@ -104,7 +104,7 @@
         "entityType": "EXPENSE",
         "entityId": 20,
         "topic": "EXPENSE_CREATED",
-        "description": "hungtri đã tạo khoản chi \"Ăn lẩu thái\" — 1,000,000 ₫",
+        "description": "hungtri created expense \"Thai hotpot dinner\" — 1,000,000 ₫",
         "createdAt": "2026-08-01T20:30:00"
       }
     ],

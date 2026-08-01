@@ -6,30 +6,24 @@
 
 ---
 
-## Tổng quan tài liệu
+## Documentation Index
 
-Bộ tài liệu này mô tả thiết kế REST API cho ứng dụng **Divvy** — sổ quỹ thông minh dành cho nhóm.
-
----
-
-## Danh sách module
-
-| Module | File | Mô tả |
+| Module | File | Description |
 |---|---|---|
-| 🔐 Authentication | [01-auth.md](./01-auth.md) | Đăng ký, đăng nhập, thông tin user |
-| 👤 User | [02-user.md](./02-user.md) | Quản lý hồ sơ cá nhân |
-| 👥 Group | [03-group.md](./03-group.md) | Tạo, cập nhật, xoá nhóm |
-| 🙋 Group Member | [04-group-member.md](./04-group-member.md) | Quản lý thành viên trong nhóm |
-| 📨 Invitation | [05-invitation.md](./05-invitation.md) | Gửi & xử lý lời mời tham gia nhóm |
-| 💸 Expense | [06-expense.md](./06-expense.md) | Ghi nhận và quản lý khoản chi |
-| 🔴 Debt | [07-debt.md](./07-debt.md) | Xem và theo dõi công nợ |
-| ✅ Settlement | [08-settlement.md](./08-settlement.md) | Ghi nhận thanh toán nợ |
-| 📋 Activity | [09-activity.md](./09-activity.md) | Lịch sử hoạt động nhóm |
-| 🗂️ Reference | [10-reference.md](./10-reference.md) | Enum values, error codes, cấu trúc chung |
+| 🔐 Authentication | [01-auth.md](./01-auth.md) | Register, login, current user |
+| 👤 User | [02-user.md](./02-user.md) | User profile management |
+| 👥 Group | [03-group.md](./03-group.md) | Create, update, delete groups |
+| 🙋 Group Member | [04-group-member.md](./04-group-member.md) | Manage group members |
+| 📨 Invitation | [05-invitation.md](./05-invitation.md) | Send & handle group invitations |
+| 💸 Expense | [06-expense.md](./06-expense.md) | Record and manage expenses |
+| 🔴 Debt | [07-debt.md](./07-debt.md) | View and track debts |
+| ✅ Settlement | [08-settlement.md](./08-settlement.md) | Record debt payments |
+| 📋 Activity | [09-activity.md](./09-activity.md) | Group activity history |
+| 🗂️ Reference | [10-reference.md](./10-reference.md) | Enum values, error codes, endpoint index |
 
 ---
 
-## Cấu trúc Response chuẩn
+## Standard Response Format
 
 ### Success
 ```json
@@ -45,42 +39,42 @@ Bộ tài liệu này mô tả thiết kế REST API cho ứng dụng **Divvy** 
 {
   "status": 400,
   "error": "Bad Request",
-  "message": "Mô tả lỗi cụ thể",
+  "message": "Specific error description",
   "timestamp": "2026-07-31T15:00:00"
 }
 ```
 
 ---
 
-## Luồng nghiệp vụ tổng quan
+## Business Flow Overview
 
 ```
-[Đăng ký / Đăng nhập]
+[Register / Login]
         ↓
-[Tạo nhóm] → [Mời thành viên] → [Thành viên chấp nhận]
+[Create Group] → [Invite Members] → [Members Accept]
         ↓
-[Ghi nhận khoản chi]
-  ├── Payer: ai đã bỏ tiền ra?
-  └── Share: ai phải chia tiền?
+[Record an Expense]
+  ├── Payers: who put up the money?
+  └── Shares: who splits the cost?
         ↓
-[Hệ thống tự tính Debt]
+[System auto-calculates Debts]
         ↓
-[Thành viên trả nợ → Settlement]
+[Members repay → Settlement]
         ↓
-[Xem Activity log để đối soát]
+[Review Activity log for reconciliation]
 ```
 
 ---
 
 ## HTTP Status Codes
 
-| Code | Ý nghĩa |
+| Code | Meaning |
 |---|---|
-| `200 OK` | Thành công |
-| `201 Created` | Tạo mới thành công |
-| `400 Bad Request` | Dữ liệu đầu vào không hợp lệ |
-| `401 Unauthorized` | Chưa xác thực hoặc token không hợp lệ |
-| `403 Forbidden` | Không có quyền thực hiện thao tác |
-| `404 Not Found` | Tài nguyên không tồn tại |
-| `409 Conflict` | Dữ liệu bị trùng (email, username...) |
-| `500 Internal Server Error` | Lỗi hệ thống |
+| `200 OK` | Success |
+| `201 Created` | Resource created successfully |
+| `400 Bad Request` | Invalid input data |
+| `401 Unauthorized` | Not authenticated or token invalid/expired |
+| `403 Forbidden` | Authenticated but not authorized for this action |
+| `404 Not Found` | Resource does not exist |
+| `409 Conflict` | Duplicate data (email, username, etc.) |
+| `500 Internal Server Error` | Unexpected server error |

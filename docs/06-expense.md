@@ -1,25 +1,25 @@
 # 💸 Expense API
 
-[← Về tổng quan](./README.md)
+[← Back to overview](./README.md)
 
 ---
 
-> ## ⚙️ Luồng tạo khoản chi
-> 1. **Tạo expense** (mô tả, số tiền, danh mục)
-> 2. **Khai báo payer(s)** — ai đã bỏ tiền ra
-> 3. **Khai báo share(s)** — ai phải chia tiền, bao nhiêu
-> 4. **Hệ thống tự tính Debt** dựa trên (payer − share)
+> ## ⚙️ Expense Creation Flow
+> 1. **Create expense** (description, total amount, category, date)
+> 2. **Declare payer(s)** — who paid out of pocket
+> 3. **Declare share(s)** — who splits the cost and how much
+> 4. **System auto-calculates Debts** based on (payer − share)
 
 ---
 
-## POST `/groups/{groupId}/expenses` — Tạo khoản chi mới
+## POST `/groups/{groupId}/expenses` — Create a new expense
 
-**Auth required**: ✅ Bearer Token | **Phân quyền**: Thành viên của nhóm
+**Auth required**: ✅ Bearer Token | **Authorization**: Group member
 
 ### Request Body
 ```json
 {
-  "description": "Ăn lẩu thái tối ngày 1",
+  "description": "Thai hotpot dinner day 1",
   "totalAmount": "1000000.00",
   "currencyId": 1,
   "categoryId": 2,
@@ -37,26 +37,26 @@
 }
 ```
 
-| Field | Type | Required | Mô tả |
+| Field | Type | Required | Description |
 |---|---|---|---|
-| `description` | string | ✅ | Mô tả khoản chi |
-| `totalAmount` | decimal | ✅ | Tổng số tiền |
-| `currencyId` | integer | ✅ | Đơn vị tiền tệ |
-| `categoryId` | integer | ❌ | Danh mục chi tiêu |
-| `expenseDate` | date | ✅ | Ngày phát sinh chi tiêu |
-| `splitType` | string | ❌ | Chế độ chia tiền: `EQUAL` (mặc định), `EXACT`, `PERCENTAGE`, `SHARES`, `ADJUSTMENT` |
-| `payers` | array | ✅ | Danh sách người bỏ tiền ra |
-| `payers[].userId` | integer | ✅ | ID người thanh toán |
-| `payers[].amount` | decimal | ✅ | Số tiền họ đã trả |
-| `shares` | array | ✅ | Danh sách người chia chi phí |
-| `shares[].userId` | integer | ✅ | ID người phải chịu chi phí |
-| `shares[].amount` | decimal | ❌ | Số tiền (Bắt buộc với `EXACT`) |
-| `shares[].percentage` | decimal | ❌ | Phần trăm (Bắt buộc với `PERCENTAGE`, tổng = 100) |
-| `shares[].ratio` | decimal | ❌ | Số phần/hệ số (Bắt buộc với `SHARES`) |
-| `shares[].adjustment` | decimal | ❌ | Tiền điều chỉnh cộng/trừ (Dùng với `ADJUSTMENT`, tổng = 0) |
+| `description` | string | ✅ | Expense description |
+| `totalAmount` | decimal | ✅ | Total expense amount |
+| `currencyId` | integer | ✅ | Currency ID |
+| `categoryId` | integer | ❌ | Expense category ID |
+| `expenseDate` | date | ✅ | Date the expense occurred |
+| `splitType` | string | ❌ | Split mode: `EQUAL` (default), `EXACT`, `PERCENTAGE`, `SHARES`, `ADJUSTMENT` |
+| `payers` | array | ✅ | List of people who paid |
+| `payers[].userId` | integer | ✅ | Payer's user ID |
+| `payers[].amount` | decimal | ✅ | Amount paid |
+| `shares` | array | ✅ | List of people sharing the cost |
+| `shares[].userId` | integer | ✅ | Participant's user ID |
+| `shares[].amount` | decimal | ❌ | Exact amount (Required for `EXACT`) |
+| `shares[].percentage` | decimal | ❌ | Percentage (Required for `PERCENTAGE`, sum must = 100) |
+| `shares[].ratio` | decimal | ❌ | Ratio/shares count (Required for `SHARES`) |
+| `shares[].adjustment` | decimal | ❌ | Plus/minus adjustment amount (Used with `ADJUSTMENT`, sum must = 0) |
 
-> **Validation**: `sum(payers.amount)` phải bằng `totalAmount`  
-> **Validation**: `sum(shares.amount)` phải bằng `totalAmount`
+> **Validation**: `sum(payers.amount)` must equal `totalAmount`  
+> **Validation**: `sum(shares.amount)` must equal `totalAmount`
 
 ### Response `201 Created`
 ```json
@@ -65,11 +65,11 @@
   "message": "Expense created successfully",
   "data": {
     "id": 20,
-    "group": { "id": 10, "name": "Du lịch Đà Lạt 2026" },
-    "description": "Ăn lẩu thái tối ngày 1",
+    "group": { "id": 10, "name": "Summer Trip 2026" },
+    "description": "Thai hotpot dinner day 1",
     "totalAmount": "1000000.00",
     "currency": { "id": 1, "code": "VND", "symbol": "₫" },
-    "category": { "id": 2, "name": "Ăn uống" },
+    "category": { "id": 2, "name": "Food & Dining" },
     "expenseDate": "2026-08-01",
     "payers": [
       { "userId": 1, "username": "hungtri", "amount": "800000.00" },
@@ -92,18 +92,18 @@
 
 ---
 
-## GET `/groups/{groupId}/expenses` — Danh sách khoản chi của nhóm
+## GET `/groups/{groupId}/expenses` — List group expenses
 
-**Auth required**: ✅ Bearer Token | **Phân quyền**: Thành viên của nhóm
+**Auth required**: ✅ Bearer Token | **Authorization**: Group member
 
 ### Query Parameters
-| Param | Type | Mô tả |
+| Param | Type | Description |
 |---|---|---|
-| `page` | integer | Trang (mặc định: 0) |
-| `size` | integer | Số item (mặc định: 20) |
-| `categoryId` | integer | Lọc theo danh mục |
-| `fromDate` | date | Lọc từ ngày (`YYYY-MM-DD`) |
-| `toDate` | date | Lọc đến ngày (`YYYY-MM-DD`) |
+| `page` | integer | Page number (default: 0) |
+| `size` | integer | Items per page (default: 20) |
+| `categoryId` | integer | Filter by category ID |
+| `fromDate` | date | Filter from date (`YYYY-MM-DD`) |
+| `toDate` | date | Filter to date (`YYYY-MM-DD`) |
 
 ### Response `200 OK`
 ```json
@@ -114,10 +114,10 @@
     "content": [
       {
         "id": 20,
-        "description": "Ăn lẩu thái tối ngày 1",
+        "description": "Thai hotpot dinner day 1",
         "totalAmount": "1000000.00",
         "currency": { "code": "VND" },
-        "category": { "name": "Ăn uống" },
+        "category": { "name": "Food & Dining" },
         "expenseDate": "2026-08-01",
         "payerCount": 2,
         "shareCount": 4
@@ -133,9 +133,9 @@
 
 ---
 
-## GET `/groups/{groupId}/expenses/{expenseId}` — Chi tiết khoản chi
+## GET `/groups/{groupId}/expenses/{expenseId}` — Get expense detail
 
-**Auth required**: ✅ Bearer Token | **Phân quyền**: Thành viên của nhóm
+**Auth required**: ✅ Bearer Token | **Authorization**: Group member
 
 ### Response `200 OK`
 ```json
@@ -144,10 +144,10 @@
   "message": "Expense retrieved successfully",
   "data": {
     "id": 20,
-    "description": "Ăn lẩu thái tối ngày 1",
+    "description": "Thai hotpot dinner day 1",
     "totalAmount": "1000000.00",
     "currency": { "id": 1, "code": "VND" },
-    "category": { "id": 2, "name": "Ăn uống" },
+    "category": { "id": 2, "name": "Food & Dining" },
     "expenseDate": "2026-08-01",
     "payers": [ ... ],
     "shares": [ ... ],
@@ -159,14 +159,14 @@
 
 ---
 
-## PUT `/groups/{groupId}/expenses/{expenseId}` — Cập nhật khoản chi
+## PUT `/groups/{groupId}/expenses/{expenseId}` — Update expense
 
-**Auth required**: ✅ Bearer Token | **Phân quyền**: Người tạo khoản chi hoặc ADMIN
+**Auth required**: ✅ Bearer Token | **Authorization**: Expense creator or Group OWNER
 
-> ⚠️ Cập nhật sẽ **xoá và tính lại toàn bộ Debt** liên quan đến khoản chi này.
+> ⚠️ Updating an expense will **delete and recalculate all associated Debts**.
 
 ### Request Body
-Giống với POST, gửi toàn bộ dữ liệu mới.
+Same structure as POST request; send the complete updated expense payload.
 
 ### Response `200 OK`
 ```json
@@ -179,11 +179,11 @@ Giống với POST, gửi toàn bộ dữ liệu mới.
 
 ---
 
-## DELETE `/groups/{groupId}/expenses/{expenseId}` — Xoá khoản chi
+## DELETE `/groups/{groupId}/expenses/{expenseId}` — Delete expense
 
-**Auth required**: ✅ Bearer Token | **Phân quyền**: Người tạo hoặc ADMIN
+**Auth required**: ✅ Bearer Token | **Authorization**: Expense creator or Group OWNER
 
-> ⚠️ Xoá khoản chi sẽ xoá tất cả Payer, Share và Debt liên quan (nếu chưa có Settlement).
+> ⚠️ Deleting an expense deletes all associated Payers, Shares, and Debts (if no Settlement has been recorded).
 
 ### Response `200 OK`
 ```json
@@ -194,8 +194,8 @@ Giống với POST, gửi toàn bộ dữ liệu mới.
 }
 ```
 
-### Lỗi thường gặp
-| Status | Trường hợp |
+### Common Errors
+| Status | Cause |
 |---|---|
-| `400` | Khoản chi đã có Settlement — không thể xoá |
-| `403` | Không có quyền xoá |
+| `400` | Expense already has associated Settlements and cannot be deleted |
+| `403` | Unauthorized to delete this expense |
