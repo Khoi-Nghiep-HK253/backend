@@ -2,11 +2,10 @@ package com.hcmut.divvy.service.model;
 
 import lombok.*;
 
-@Getter
-@Setter
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class RevokeInvitationModel {
     private Integer invitationId;
     private String currentUsername;

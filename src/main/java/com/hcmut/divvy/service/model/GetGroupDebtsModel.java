@@ -3,11 +3,10 @@ package com.hcmut.divvy.service.model;
 import com.hcmut.divvy.entity.enums.DebtStatus;
 import lombok.*;
 
-@Getter
-@Setter
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class GetGroupDebtsModel {
     private String currentUsername;
     private Integer groupId;

@@ -5,14 +5,13 @@ import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 
-@Getter
-@Setter
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class GetGroupExpensesModel {
-    private String currentUsername;
     private Integer groupId;
+    private String currentUsername;
     private Integer categoryId;
     private LocalDate fromDate;
     private LocalDate toDate;

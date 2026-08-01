@@ -4,14 +4,14 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class SendInvitationModel {
     private Integer groupId;
     private Integer inviteeId;
+    private String usernameOrEmail;
     private String message;
     private LocalDateTime expiresAt;
     private String currentUsername;

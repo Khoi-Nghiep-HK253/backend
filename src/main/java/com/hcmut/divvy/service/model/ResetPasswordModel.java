@@ -2,11 +2,10 @@ package com.hcmut.divvy.service.model;
 
 import lombok.*;
 
-@Getter
-@Setter
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class ResetPasswordModel {
     private String token;
     private String newPassword;

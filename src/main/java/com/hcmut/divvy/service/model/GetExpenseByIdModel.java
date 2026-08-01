@@ -2,13 +2,12 @@ package com.hcmut.divvy.service.model;
 
 import lombok.*;
 
-@Getter
-@Setter
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class GetExpenseByIdModel {
-    private String currentUsername;
     private Integer groupId;
     private Integer expenseId;
+    private String currentUsername;
 }

@@ -4,11 +4,10 @@ import lombok.*;
 
 import java.math.BigDecimal;
 
-@Getter
-@Setter
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class UserBalanceModel {
     private Integer userId;
     private BigDecimal amount;
