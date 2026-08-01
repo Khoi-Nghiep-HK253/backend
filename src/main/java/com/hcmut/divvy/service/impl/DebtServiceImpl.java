@@ -7,6 +7,7 @@ import com.hcmut.divvy.mapper.DebtMapper;
 import com.hcmut.divvy.repository.DebtRepository;
 import com.hcmut.divvy.repository.GroupMemberRepository;
 import com.hcmut.divvy.repository.GroupRepository;
+import com.hcmut.divvy.repository.SettlementRepository;
 import com.hcmut.divvy.repository.UserRepository;
 import com.hcmut.divvy.service.DebtService;
 import com.hcmut.divvy.service.model.*;
@@ -32,6 +33,7 @@ public class DebtServiceImpl implements DebtService {
     private final GroupRepository groupRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final DebtRepository debtRepository;
+    private final SettlementRepository settlementRepository;
     private final DebtMapper debtMapper;
     private final UserValidator userValidator;
     private final GroupValidator groupValidator;
@@ -182,7 +184,10 @@ public class DebtServiceImpl implements DebtService {
                 debtRepository.findById(model.getDebtId()), model.getDebtId());
         debtValidator.validateDebtBelongsToGroup(debt, group.getId());
 
-        return debtMapper.toDebtDetailResponse(debt, List.of());
+        List<Settlement> settlements = settlementRepository.findByDebtId(debt.getId());
+        List<Object> settlementResponses = settlements.stream().map(s -> (Object) s).toList();
+
+        return debtMapper.toDebtDetailResponse(debt, settlementResponses);
     }
 
     // ── Helper Data Classes ────────────────────────────────────────────────────────
