@@ -1,6 +1,5 @@
 package com.hcmut.divvy.service.impl;
 
-import com.hcmut.divvy.common.exception.BusinessException;
 import com.hcmut.divvy.common.exception.ResourceNotFoundException;
 import com.hcmut.divvy.dto.response.AuthResponse;
 import com.hcmut.divvy.dto.response.UserResponse;
@@ -21,7 +20,6 @@ import com.hcmut.divvy.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -37,123 +35,128 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public class AuthServiceImpl implements AuthService {
 
-    private final UserRepository userRepository;
-    private final UserMapper userMapper;
-    private final UserValidator userValidator;
-    private final PasswordResetValidator passwordResetValidator;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtTokenProvider tokenProvider;
-    private final AuthenticationManager authenticationManager;
-    private final PasswordResetTokenRepository passwordResetTokenRepository;
-    private final EmailService emailService;
+        private final UserRepository userRepository;
+        private final UserMapper userMapper;
+        private final UserValidator userValidator;
+        private final PasswordResetValidator passwordResetValidator;
+        private final PasswordEncoder passwordEncoder;
+        private final JwtTokenProvider tokenProvider;
+        private final AuthenticationManager authenticationManager;
+        private final PasswordResetTokenRepository passwordResetTokenRepository;
+        private final EmailService emailService;
 
-    @Value("${app.reset-password.expiry-minutes:30}")
-    private int resetTokenExpiryMinutes;
+        @Value("${app.reset-password.expiry-minutes:30}")
+        private int resetTokenExpiryMinutes;
 
-    @Value("${app.reset-password.base-url:http://localhost:3000/reset-password}")
-    private String resetPasswordBaseUrl;
+        @Value("${app.reset-password.base-url:http://localhost:3000/reset-password}")
+        private String resetPasswordBaseUrl;
 
-    @Override
-    @Transactional
-    public AuthResponse register(RegisterModel model) {
-        userValidator.validateCreateUser(model.getUsername(), model.getEmail());
+        @Override
+        @Transactional
+        public AuthResponse register(RegisterModel model) {
+                boolean usernameExists = userRepository.existsByUsername(model.getUsername());
+                boolean emailExists = userRepository.existsByEmail(model.getEmail());
+                userValidator.validateCreateUser(usernameExists, emailExists);
 
-        User user = userMapper.toEntity(model);
-        user.setHashPassword(passwordEncoder.encode(model.getPassword()));
+                User user = userMapper.toEntity(model);
+                user.setHashPassword(passwordEncoder.encode(model.getPassword()));
 
-        User saved = userRepository.save(user);
-        String token = tokenProvider.generateToken(saved.getUsername());
+                User saved = userRepository.save(user);
+                String token = tokenProvider.generateToken(saved.getUsername());
 
-        return AuthResponse.builder()
-                .accessToken(token)
-                .tokenType("Bearer")
-                .user(userMapper.toResponse(saved))
-                .build();
-    }
-
-    @Override
-    public AuthResponse login(LoginModel model) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(model.getUsernameOrEmail(), model.getPassword())
-        );
-
-        User user = userRepository.findByUsername(model.getUsernameOrEmail())
-                .orElseGet(() -> userRepository.findByEmail(model.getUsernameOrEmail())
-                        .orElseThrow(() -> new ResourceNotFoundException("User", "usernameOrEmail", model.getUsernameOrEmail())));
-
-        String token = tokenProvider.generateToken(user.getUsername());
-
-        return AuthResponse.builder()
-                .accessToken(token)
-                .tokenType("Bearer")
-                .user(userMapper.toResponse(user))
-                .build();
-    }
-
-    @Override
-    public UserResponse getCurrentUser(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
-
-        return userMapper.toResponse(user);
-    }
-
-    @Override
-    @Transactional
-    public void forgotPassword(ForgotPasswordModel model) {
-        Optional<User> userOpt = userRepository.findByEmail(model.getEmail());
-
-        if (userOpt.isEmpty()) {
-            log.info("Password reset requested for unregistered email: {}", model.getEmail());
-            return;
+                return AuthResponse.builder()
+                                .accessToken(token)
+                                .tokenType("Bearer")
+                                .user(userMapper.toResponse(saved))
+                                .build();
         }
 
-        User user = userOpt.get();
+        @Override
+        public AuthResponse login(LoginModel model) {
+                authenticationManager.authenticate(
+                                new UsernamePasswordAuthenticationToken(model.getUsernameOrEmail(),
+                                                model.getPassword()));
 
-        passwordResetTokenRepository.invalidateAllByUserId(user.getId());
+                User user = userRepository.findByUsername(model.getUsernameOrEmail())
+                                .orElseGet(() -> userRepository.findByEmail(model.getUsernameOrEmail())
+                                                .orElseThrow(() -> new ResourceNotFoundException("User",
+                                                                "usernameOrEmail", model.getUsernameOrEmail())));
 
-        String rawToken = TokenHelper.generateToken();
-        PasswordResetToken resetToken = PasswordResetToken.builder()
-                .user(user)
-                .token(rawToken)
-                .expiresAt(LocalDateTime.now().plusMinutes(resetTokenExpiryMinutes))
-                .used(false)
-                .build();
+                String token = tokenProvider.generateToken(user.getUsername());
 
-        passwordResetTokenRepository.save(resetToken);
+                return AuthResponse.builder()
+                                .accessToken(token)
+                                .tokenType("Bearer")
+                                .user(userMapper.toResponse(user))
+                                .build();
+        }
 
-        String resetLink = resetPasswordBaseUrl + "?token=" + rawToken;
-        emailService.sendPasswordResetEmail(user.getEmail(), resetLink);
+        @Override
+        public UserResponse getCurrentUser(String username) {
+                User user = userRepository.findByUsername(username)
+                                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
 
-        log.info("Password reset token generated for user id={}", user.getId());
-    }
+                return userMapper.toResponse(user);
+        }
 
-    @Override
-    public VerifyTokenResponse verifyResetToken(VerifyResetTokenModel model) {
-        PasswordResetToken resetToken = passwordResetValidator.validateToken(model.getToken());
+        @Override
+        @Transactional
+        public void forgotPassword(ForgotPasswordModel model) {
+                Optional<User> userOpt = userRepository.findByEmail(model.getEmail());
 
-        String maskedEmail = StringHelper.maskEmail(resetToken.getUser().getEmail());
-        return VerifyTokenResponse.builder()
-                .email(maskedEmail)
-                .expiresAt(resetToken.getExpiresAt())
-                .build();
-    }
+                if (userOpt.isEmpty()) {
+                        log.info("Password reset requested for unregistered email: {}", model.getEmail());
+                        return;
+                }
 
-    @Override
-    @Transactional
-    public void resetPassword(ResetPasswordModel model) {
-        PasswordResetToken preCheck = passwordResetTokenRepository.findByToken(model.getToken())
-                .orElseThrow(() -> new BusinessException("Invalid or expired reset token.", HttpStatus.BAD_REQUEST));
+                User user = userOpt.get();
 
-        PasswordResetToken resetToken = passwordResetValidator.validateResetPasswordRequest(model.getToken(), model.getNewPassword(), model.getConfirmPassword(), preCheck.getUser());
+                passwordResetTokenRepository.invalidateAllByUserId(user.getId());
 
-        User user = resetToken.getUser();
-        user.setHashPassword(passwordEncoder.encode(model.getNewPassword()));
-        userRepository.save(user);
+                String rawToken = TokenHelper.generateToken();
+                PasswordResetToken resetToken = PasswordResetToken.builder()
+                                .user(user)
+                                .token(rawToken)
+                                .expiresAt(LocalDateTime.now().plusMinutes(resetTokenExpiryMinutes))
+                                .used(false)
+                                .build();
 
-        resetToken.setUsed(true);
-        passwordResetTokenRepository.save(resetToken);
+                passwordResetTokenRepository.save(resetToken);
 
-        log.info("Password reset successfully for user id={}", user.getId());
-    }
+                String resetLink = resetPasswordBaseUrl + "?token=" + rawToken;
+                emailService.sendPasswordResetEmail(user.getEmail(), resetLink);
+
+                log.info("Password reset token generated for user id={}", user.getId());
+        }
+
+        @Override
+        public VerifyTokenResponse verifyResetToken(VerifyResetTokenModel model) {
+                PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(model.getToken())
+                                .orElse(null);
+                passwordResetValidator.validateToken(resetToken);
+
+                String maskedEmail = StringHelper.maskEmail(resetToken.getUser().getEmail());
+                return VerifyTokenResponse.builder()
+                                .email(maskedEmail)
+                                .expiresAt(resetToken.getExpiresAt())
+                                .build();
+        }
+
+        @Override
+        @Transactional
+        public void resetPassword(ResetPasswordModel model) {
+                PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(model.getToken())
+                                .orElse(null);
+                User user = resetToken != null ? resetToken.getUser() : null;
+
+                passwordResetValidator.validateResetPasswordRequest(model, resetToken, user, passwordEncoder);
+
+                user.setHashPassword(passwordEncoder.encode(model.getNewPassword()));
+                userRepository.save(user);
+
+                resetToken.setUsed(true);
+                passwordResetTokenRepository.save(resetToken);
+
+                log.info("Password reset successfully for user id={}", user.getId());
+        }
 }

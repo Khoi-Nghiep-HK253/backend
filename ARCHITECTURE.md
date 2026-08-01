@@ -6,7 +6,7 @@ Tài liệu này mô tả chi tiết kiến trúc, mô hình tổ chức source 
 
 ## 1. Sơ đồ Kiến trúc Tổng quan (Architecture Diagram)
 
-Hệ thống được thiết kế theo mô hình **Layered Architecture** nâng cao kết hợp **Single Model Parameter Pattern** (Command Object Pattern), **Centralized Validator Layer**, và **Strongly-Typed Enums** nhằm mục đích đảm bảo tính rõ ràng, tách biệt trách nhiệm, tránh phình to phương thức và dễ dàng mở rộng.
+Hệ thống được thiết kế theo mô hình **Layered Architecture** nâng cao kết hợp **Single Model Parameter Pattern** (Command Object Pattern), **Pure Decoupled Validator Layer**, và **Strongly-Typed Enums** nhằm mục đích đảm bảo tính rõ ràng, tách biệt trách nhiệm, tránh phình to phương thức và dễ dàng mở rộng.
 
 ```mermaid
 graph TD
@@ -20,11 +20,12 @@ graph TD
     subgraph Service & Business Layer
         Controllers -->|Injected Interface| Services[Service Layer Interfaces com.hcmut.divvy.service]
         Services -->|Single Model Input| ServiceImpls[Service Implementations com.hcmut.divvy.service.impl]
-        ServiceImpls -->|Delegate Business Rule Checks| Validators[Validator Layer com.hcmut.divvy.validator]
+        ServiceImpls -->|1. Fetch Entities & Data| Repositories[Repository Layer JPA]
+        ServiceImpls -->|2. Pass Entities for Rule Assertions| Validators[Pure Validator Layer com.hcmut.divvy.validator]
     end
     
     subgraph Data Access Layer
-        ServiceImpls -->|Data Query/Persist| Repositories[Repository Layer JPA]
+        ServiceImpls -->|Data Persist/Query| Repositories
         Repositories -->|ORM Mapping| Entities[JPA Entities]
         Entities -->|Uses Enums| Enums[Strongly-Typed Enums com.hcmut.divvy.entity.enums]
         Entities -->|Extends Audit| BaseEntity[BaseEntity]
@@ -51,13 +52,16 @@ graph TD
 *   **Cấu trúc 2 Folder Con:**
     *   `com.hcmut.divvy.service.impl`: Chứa toàn bộ các lớp Service Implementation thực thi nghiệp vụ (`AuthServiceImpl`, `GroupServiceImpl`, `GroupMemberServiceImpl`, `UserServiceImpl`, `EmailServiceImpl`).
     *   `com.hcmut.divvy.service.model`: Chứa toàn bộ các Single Command/Parameter Models (`CreateGroupModel`, `UpdateGroupModel`, `LoginModel`, `RegisterModel`, `AddMemberModel`,...).
-*   **Nguyên tắc Single Model Parameter Pattern:**
+*   **Nguyên tắc Single Model Parameter Pattern & Data Fetching:**
     *   Mỗi phương thức của Service chỉ nhận **DUY NHẤT 1 đối tượng Model** làm tham số đầu vào (ví dụ `groupService.create(CreateGroupModel model)`), gom toàn bộ dữ liệu request body, path parameters và thông tin tài khoản đang đăng nhập.
-    *   Lớp implementation được đánh dấu `@Service` và `@Transactional`. Tương tác với Repositories để đọc/ghi dữ liệu và gọi `Validator` tương ứng để kiểm tra nghiệp vụ.
+    *   Lớp implementation đóng vai trò **Orchestrator**: Tự truy xuất dữ liệu/Entities từ Repositories, sau đó chuyển các Entities/trạng thái này cho tầng Validator để kiểm tra điều kiện nghiệp vụ trước khi tiến hành ghi/lưu dữ liệu.
 
-### 2.3. Validator Layer (`com.hcmut.divvy.validator`)
-*   **Nhiệm vụ:** Tập trung xử lý các validation mang tính trạng thái CSDL hoặc kiểm tra quyền/ràng buộc nghiệp vụ (`UserValidator`, `GroupValidator`, `GroupMemberValidator`, `PasswordResetValidator`).
-*   **Mục đích:** Giúp tầng Service luôn tinh gọn, tập trung hoàn toàn vào luồng nghiệp vụ chính thay vì bị phình to bởi các đoạn code `if/else throw new Exception`.
+### 2.3. Pure Decoupled Validator Layer (`com.hcmut.divvy.validator`)
+*   **Nhiệm vụ:** Tập trung kiểm tra các quy tắc nghiệp vụ, quyền hạn (Authorization checks) và điều kiện hợp lệ trên các Entity/Tham số truyền vào (`UserValidator`, `GroupValidator`, `GroupMemberValidator`, `InvitationValidator`, `PasswordResetValidator`).
+*   **Đặc điểm thiết kế (Pure Validation):**
+    *   **Không inject Repository:** Tầng Validator hoàn toàn không phụ thuộc vào tầng Data Access Layer hay Database.
+    *   **Tách biệt trách nhiệm:** Service chịu trách nhiệm lấy dữ liệu từ DB, còn Validator đóng vai trò Pure Functions chỉ nhận dữ liệu và thực thi quy tắc kiểm tra.
+    *   **Hiệu năng & Dễ Test:** Tránh lặp lại các truy vấn DB không cần thiết (Double Fetching) và giúp viết Unit Test cho Validator cực kỳ dễ dàng (không cần Mock Repository).
 
 ### 2.4. Entity & Enum Layer (`com.hcmut.divvy.entity` / `com.hcmut.divvy.entity.enums`)
 *   **Nhiệm vụ:** Khai báo cấu trúc bảng (ORM mapping). Tất cả các entities kế thừa từ `BaseEntity` để tự động quản lý các trường audit (`created_at`, `updated_at`) thông qua JPA Auditing.
@@ -92,12 +96,11 @@ Client  ──► [Controller: GroupController.createGroup(request, authenticati
                  ▼  (Passes Single CreateGroupModel)
             [Service: GroupServiceImpl.create(CreateGroupModel model)]
                  │
-                 ├──► [Validator: GroupValidator.validateUserExists(model.getCurrentUsername())]
-                 ├──► [Validator: GroupValidator.validateCategoryExists(model.getCategoryId())]
-                 ├──► [Validator: GroupValidator.validateCurrencyExists(model.getDefaultCurrencyId())]
+                 ├──► [Repository: Query Creator User, Category, Currency]
+                 ├──► [Validator: pure rule checks on fetched entities]
                  │
                  ├──► [Repository: GroupRepository.save(Group entity)]
-                 ├──► [Repository: GroupMemberRepository.save(Creator as ADMIN)]
+                 ├──► [Repository: GroupMemberRepository.save(Creator as OWNER)]
                  │
                  ▼  (Mapping Entity -> GroupResponse)
 Client  ◄── [Return ApiResponse.created(groupResponse)]

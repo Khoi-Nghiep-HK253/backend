@@ -42,7 +42,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserResponse create(CreateUserModel model) {
-        userValidator.validateCreateUser(model);
+        boolean usernameExists = userRepository.existsByUsername(model.getUsername());
+        boolean emailExists = userRepository.existsByEmail(model.getEmail());
+
+        userValidator.validateCreateUser(usernameExists, emailExists);
+
         User user = userMapper.toEntity(model);
         user.setHashPassword(passwordEncoder.encode(model.getPassword()));
         User saved = userRepository.save(user);
@@ -70,7 +74,7 @@ public class UserServiceImpl implements UserService {
 
         userValidator.validateOwnership(user, model.getCurrentUsername());
 
-        userValidator.validateChangePassword(model, user);
+        userValidator.validateChangePassword(model, user, passwordEncoder);
 
         user.setHashPassword(passwordEncoder.encode(model.getNewPassword()));
         userRepository.save(user);

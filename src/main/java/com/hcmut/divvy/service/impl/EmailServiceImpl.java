@@ -69,6 +69,7 @@ public class EmailServiceImpl implements EmailService {
                     <hr style="margin-top: 32px; border: none; border-top: 1px solid #e0e0e0;"/>
                     <p style="color: #aaa; font-size: 12px;">© Divvy App</p>
                 </div>
-                """.formatted(resetLink);
+                """
+                .formatted(resetLink);
     }
 }

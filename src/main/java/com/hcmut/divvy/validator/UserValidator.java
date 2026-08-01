@@ -3,42 +3,32 @@ package com.hcmut.divvy.validator;
 import com.hcmut.divvy.common.exception.BusinessException;
 import com.hcmut.divvy.dto.request.ChangePasswordRequest;
 import com.hcmut.divvy.entity.User;
-import com.hcmut.divvy.repository.UserRepository;
 import com.hcmut.divvy.service.model.*;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
 public class UserValidator {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-
-    public void validateCreateUser(CreateUserModel model) {
-        validateCreateUser(model.getUsername(), model.getEmail());
-    }
-
-    public void validateCreateUser(String username, String email) {
-        if (userRepository.existsByUsername(username)) {
+    public void validateCreateUser(boolean usernameExists, boolean emailExists) {
+        if (usernameExists) {
             throw new BusinessException("Username already exists", HttpStatus.CONFLICT);
         }
-        if (userRepository.existsByEmail(email)) {
+        if (emailExists) {
             throw new BusinessException("Email already exists", HttpStatus.CONFLICT);
         }
     }
 
-    public void validateChangePassword(ChangePasswordRequest request, User user) {
-        validateChangePassword(request.getCurrentPassword(), request.getNewPassword(), user);
+    public void validateChangePassword(ChangePasswordRequest request, User user, PasswordEncoder passwordEncoder) {
+        validateChangePassword(request.getCurrentPassword(), request.getNewPassword(), user, passwordEncoder);
     }
 
-    public void validateChangePassword(ChangePasswordModel model, User user) {
-        validateChangePassword(model.getOldPassword(), model.getNewPassword(), user);
+    public void validateChangePassword(ChangePasswordModel model, User user, PasswordEncoder passwordEncoder) {
+        validateChangePassword(model.getOldPassword(), model.getNewPassword(), user, passwordEncoder);
     }
 
-    public void validateChangePassword(String oldPassword, String newPassword, User user) {
+    public void validateChangePassword(String oldPassword, String newPassword, User user, PasswordEncoder passwordEncoder) {
         if (!passwordEncoder.matches(oldPassword, user.getHashPassword())) {
             throw new BusinessException("Current password is incorrect.", HttpStatus.BAD_REQUEST);
         }

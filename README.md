@@ -21,7 +21,7 @@ Backend service cho hệ thống quản lý chi tiêu nhóm, chia tiền (expens
 
 ## 🏗 Kiến Trúc Hệ Thống (Architecture)
 
-Hệ thống tuân thủ mô hình **Layered Architecture** chuẩn kết hợp với **Single Model Parameter Pattern** (Command Object Pattern), **Centralized Validator Layer**, và **Strongly-Typed Enums**:
+Hệ thống tuân thủ mô hình **Layered Architecture** chuẩn kết hợp với **Single Model Parameter Pattern** (Command Object Pattern), **Pure Decoupled Validator Layer**, và **Strongly-Typed Enums**:
 
 ```text
 Client / Frontend
@@ -34,8 +34,8 @@ Controllers (`com.hcmut.divvy.controller`)
 Service Interfaces (`com.hcmut.divvy.service`)
        │
        ▼
-Service Implementations (`com.hcmut.divvy.service.impl`) ──► Validators (`com.hcmut.divvy.validator`)
-  (Models: `com.hcmut.divvy.service.model`)
+Service Implementations (`com.hcmut.divvy.service.impl`) ──► Pure Validators (`com.hcmut.divvy.validator`)
+  (Models: `com.hcmut.divvy.service.model`)                 (Pure Rule Assertions)
        │
        ▼
 Repositories (`com.hcmut.divvy.repository`)
@@ -45,15 +45,17 @@ Entities (`com.hcmut.divvy.entity` / `enums`) ──► PostgreSQL Database
 ```
 
 ### 📁 Cấu Trúc Gói Tầng Service (`com.hcmut.divvy.service`):
-- `com.hcmut.divvy.service`: Chứa toàn bộ các Interface Service contract (`AuthService`, `GroupService`, `GroupMemberService`, `UserService`, `EmailService`).
-- `com.hcmut.divvy.service.impl`: Chứa toàn bộ các lớp Service Implementation thực thi nghiệp vụ (`AuthServiceImpl`, `GroupServiceImpl`, `GroupMemberServiceImpl`, `UserServiceImpl`, `EmailServiceImpl`).
+- `com.hcmut.divvy.service`: Chứa toàn bộ các Interface Service contract (`AuthService`, `GroupService`, `GroupMemberService`, `UserService`, `EmailService`, `InvitationService`).
+- `com.hcmut.divvy.service.impl`: Chứa toàn bộ các lớp Service Implementation thực thi nghiệp vụ (`AuthServiceImpl`, `GroupServiceImpl`, `GroupMemberServiceImpl`, `UserServiceImpl`, `InvitationServiceImpl`, `EmailServiceImpl`).
 - `com.hcmut.divvy.service.model`: Chứa toàn bộ các Single Command/Parameter Models (`CreateGroupModel`, `UpdateGroupModel`, `LoginModel`, `RegisterModel`, `AddMemberModel`,...).
 
-### 🛡️ Tầng Xác Thực Nghiệp Vụ (`com.hcmut.divvy.validator`):
-- `UserValidator`: Xác thực tạo user, trùng lặp username/email, sở hữu tài khoản và đổi mật khẩu.
-- `GroupValidator`: Tập trung xác thực sự tồn tại của nhóm/danh mục/tiền tệ và phân quyền Admin/Thành viên.
-- `GroupMemberValidator`: Kiểm tra quy tắc thêm/xóa thành viên, phân quyền Admin và chặn hạ cấp Admin cuối cùng.
-- `PasswordResetValidator`: Kiểm tra tính hợp lệ và thời hạn của token reset mật khẩu.
+### 🛡️ Tầng Xác Thực Nghiệp Vụ Thuần (`com.hcmut.divvy.validator`):
+Các Validator đóng vai trò **Pure Component** (không tự inject Repository hay truy xuất Database). Tầng Service chịu trách nhiệm lấy dữ liệu từ DB và chuyển cho Validator thực hiện kiểm tra:
+- `UserValidator`: Kiểm tra quy tắc trùng lặp username/email, sở hữu tài khoản và khớp mật khẩu.
+- `GroupValidator`: Xác thực điều kiện thành viên/quyền Admin trên đối tượng `GroupMember`.
+- `GroupMemberValidator`: Kiểm tra quy tắc thêm/xóa thành viên, phân quyền và bảo vệ vị trí Admin cuối cùng.
+- `InvitationValidator`: Xác thực quy tắc gửi, chấp nhận, từ chối hoặc thu hồi lời mời.
+- `PasswordResetValidator`: Kiểm tra tính hợp lệ, trạng thái sử dụng và thời hạn của token reset mật khẩu.
 
 ### 🏷️ Hệ Thống Enums Định Kiểu Mạnh (`com.hcmut.divvy.entity.enums`):
 - `UserRole`: Phân quyền người dùng hệ thống (`USER`, `ADMIN`).

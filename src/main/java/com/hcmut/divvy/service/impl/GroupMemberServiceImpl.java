@@ -33,10 +33,12 @@ public class GroupMemberServiceImpl implements GroupMemberService {
     @Override
     public List<GroupMemberResponse> getMembers(GetMembersModel model) {
         User caller = findUser(model.getCurrentUsername());
-        groupMemberValidator.validateGroupExists(model.getGroupId());
-        groupMemberValidator.validateIsMember(model.getGroupId(), caller.getId());
+        Group group = findGroup(model.getGroupId());
+        GroupMember callerMember = findMember(group.getId(), caller.getId());
 
-        return groupMemberRepository.findAllByGroupId(model.getGroupId())
+        groupMemberValidator.validateIsMember(callerMember);
+
+        return groupMemberRepository.findAllByGroupId(group.getId())
                 .stream()
                 .map(groupMemberMapper::toResponse)
                 .toList();
@@ -46,15 +48,17 @@ public class GroupMemberServiceImpl implements GroupMemberService {
     @Transactional
     public GroupMemberResponse addMember(AddMemberModel model) {
         User caller = findUser(model.getCurrentUsername());
-        groupMemberValidator.validateGroupExists(model.getGroupId());
-        groupMemberValidator.validateIsAdmin(model.getGroupId(), caller.getId());
+        Group group = findGroup(model.getGroupId());
+        GroupMember callerMember = findMember(group.getId(), caller.getId());
+
+        groupMemberValidator.validateIsAdmin(callerMember);
 
         User targetUser = userRepository.findById(model.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", model.getUserId()));
 
-        groupMemberValidator.validateAddMember(model.getGroupId(), targetUser.getId());
+        boolean isAlreadyMember = groupMemberRepository.existsByGroupIdAndUserId(group.getId(), targetUser.getId());
+        groupMemberValidator.validateAddMember(isAlreadyMember);
 
-        Group group = findGroup(model.getGroupId());
         GroupMember newMember = groupMemberMapper.toEntity(group, targetUser, GroupRole.MEMBER);
 
         return groupMemberMapper.toResponse(groupMemberRepository.save(newMember));
@@ -64,13 +68,16 @@ public class GroupMemberServiceImpl implements GroupMemberService {
     @Transactional
     public GroupMemberResponse updateRole(UpdateMemberRoleModel model) {
         User caller = findUser(model.getCurrentUsername());
-        groupMemberValidator.validateGroupExists(model.getGroupId());
-        groupMemberValidator.validateIsAdmin(model.getGroupId(), caller.getId());
+        Group group = findGroup(model.getGroupId());
+        GroupMember callerMember = findMember(group.getId(), caller.getId());
+
+        groupMemberValidator.validateIsAdmin(callerMember);
 
         GroupMember member = groupMemberRepository.findById(model.getMemberId())
                 .orElseThrow(() -> new ResourceNotFoundException("GroupMember", "id", model.getMemberId()));
 
-        groupMemberValidator.validateUpdateRole(member, model.getRole());
+        long ownerCount = groupMemberRepository.countByGroupIdAndRole(member.getGroup().getId(), GroupRole.OWNER);
+        groupMemberValidator.validateUpdateRole(member, model.getRole(), ownerCount);
 
         member.setRole(GroupRole.valueOf(model.getRole()));
 
@@ -81,16 +88,16 @@ public class GroupMemberServiceImpl implements GroupMemberService {
     @Transactional
     public void removeMember(RemoveMemberModel model) {
         User caller = findUser(model.getCurrentUsername());
-        groupMemberValidator.validateGroupExists(model.getGroupId());
+        findGroup(model.getGroupId());
 
         GroupMember targetMember = groupMemberRepository.findById(model.getMemberId())
                 .orElseThrow(() -> new ResourceNotFoundException("GroupMember", "id", model.getMemberId()));
 
-        boolean isCallerAdmin = groupMemberRepository.findByGroupIdAndUserId(model.getGroupId(), caller.getId())
-                .map(m -> GroupRole.OWNER == m.getRole())
-                .orElse(false);
+        GroupMember callerMember = findMember(model.getGroupId(), caller.getId());
+        boolean isCallerAdmin = callerMember != null && GroupRole.OWNER == callerMember.getRole();
+        long ownerCount = groupMemberRepository.countByGroupIdAndRole(targetMember.getGroup().getId(), GroupRole.OWNER);
 
-        groupMemberValidator.validateRemoveMember(targetMember, caller.getId(), isCallerAdmin);
+        groupMemberValidator.validateRemoveMember(targetMember, caller.getId(), isCallerAdmin, ownerCount);
 
         groupMemberRepository.delete(targetMember);
     }
@@ -103,5 +110,9 @@ public class GroupMemberServiceImpl implements GroupMemberService {
     private Group findGroup(Integer groupId) {
         return groupRepository.findById(groupId)
                 .orElseThrow(() -> new ResourceNotFoundException("Group", "id", groupId));
+    }
+
+    private GroupMember findMember(Integer groupId, Integer userId) {
+        return groupMemberRepository.findByGroupIdAndUserId(groupId, userId).orElse(null);
     }
 }

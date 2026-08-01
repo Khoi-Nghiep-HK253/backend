@@ -1,54 +1,32 @@
 package com.hcmut.divvy.validator;
 
 import com.hcmut.divvy.common.exception.BusinessException;
-import com.hcmut.divvy.common.exception.ResourceNotFoundException;
 import com.hcmut.divvy.entity.GroupInvitation;
+import com.hcmut.divvy.entity.GroupMember;
 import com.hcmut.divvy.entity.User;
+import com.hcmut.divvy.entity.enums.GroupRole;
 import com.hcmut.divvy.entity.enums.InvitationStatus;
-import com.hcmut.divvy.repository.GroupInvitationRepository;
-import com.hcmut.divvy.repository.GroupMemberRepository;
-import com.hcmut.divvy.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
 @Component
-@RequiredArgsConstructor
 public class InvitationValidator {
 
-    private final UserRepository userRepository;
-    private final GroupMemberRepository groupMemberRepository;
-    private final GroupInvitationRepository groupInvitationRepository;
-    private final GroupValidator groupValidator;
-
-    public User validateUserExists(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
-    }
-
-    public User validateInviteeExists(Integer inviteeId) {
-        return userRepository.findById(inviteeId)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", inviteeId));
-    }
-
-    public GroupInvitation validateInvitationExists(Integer invitationId) {
-        return groupInvitationRepository.findById(invitationId)
-                .orElseThrow(() -> new ResourceNotFoundException("GroupInvitation", "id", invitationId));
-    }
-
-    public void validateSendInvitation(Integer groupId, Integer inviterId, Integer inviteeId) {
+    public void validateSendInvitation(GroupMember inviterMember, boolean isAlreadyMember, boolean hasPendingInvitation) {
         // Must be group OWNER
-        groupValidator.validateIsAdmin(groupId, inviterId);
+        if (inviterMember == null || GroupRole.OWNER != inviterMember.getRole()) {
+            throw new BusinessException("Only group admins can perform this action.", HttpStatus.FORBIDDEN);
+        }
 
         // Invitee cannot already be a member
-        if (groupMemberRepository.existsByGroupIdAndUserId(groupId, inviteeId)) {
+        if (isAlreadyMember) {
             throw new BusinessException("User is already a member of this group.", HttpStatus.BAD_REQUEST);
         }
 
         // Check if there is already a PENDING invitation for this user
-        if (groupInvitationRepository.existsByGroupIdAndInviteeIdAndStatus(groupId, inviteeId, InvitationStatus.PENDING)) {
+        if (hasPendingInvitation) {
             throw new BusinessException("A pending invitation already exists for this user.", HttpStatus.BAD_REQUEST);
         }
     }
@@ -66,8 +44,6 @@ public class InvitationValidator {
 
         // Check expiration
         if (invitation.getExpiresAt() != null && invitation.getExpiresAt().isBefore(LocalDateTime.now())) {
-            invitation.setStatus(InvitationStatus.EXPIRED);
-            groupInvitationRepository.save(invitation);
             throw new BusinessException("Invitation has expired.", HttpStatus.BAD_REQUEST);
         }
     }
@@ -84,9 +60,11 @@ public class InvitationValidator {
         }
     }
 
-    public void validateRevokeInvitation(GroupInvitation invitation, User caller) {
+    public void validateRevokeInvitation(GroupInvitation invitation, GroupMember callerMember) {
         // Must be group OWNER
-        groupValidator.validateIsAdmin(invitation.getGroup().getId(), caller.getId());
+        if (callerMember == null || GroupRole.OWNER != callerMember.getRole()) {
+            throw new BusinessException("Only group admins can perform this action.", HttpStatus.FORBIDDEN);
+        }
 
         // Must be PENDING
         if (invitation.getStatus() != InvitationStatus.PENDING) {
