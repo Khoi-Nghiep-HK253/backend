@@ -8,6 +8,8 @@ import lombok.experimental.SuperBuilder;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import com.hcmut.divvy.entity.enums.SplitType;
+
 @Entity
 @Table(name = "expenses", indexes = {
     @Index(name = "idx_expenses_group_id", columnList = "group_id"),
@@ -42,6 +44,11 @@ public class Expense extends BaseEntity {
     @Column(name = "total_amount", nullable = false, precision = 12, scale = 2)
     @Builder.Default
     private BigDecimal totalAmount = BigDecimal.ZERO;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "split_type", nullable = false, length = 20)
+    @Builder.Default
+    private SplitType splitType = SplitType.EQUAL;
 
     @Column(name = "expense_date", nullable = false)
     @Builder.Default

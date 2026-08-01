@@ -1,12 +1,15 @@
 package com.hcmut.divvy.validator;
 
 import com.hcmut.divvy.common.exception.BusinessException;
+import com.hcmut.divvy.common.exception.ResourceNotFoundException;
 import com.hcmut.divvy.dto.request.ChangePasswordRequest;
 import com.hcmut.divvy.entity.User;
 import com.hcmut.divvy.service.model.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 @Component
 public class UserValidator {
@@ -49,5 +52,25 @@ public class UserValidator {
         if (!user.getUsername().equals(currentUsername)) {
             throw new BusinessException("You are not authorized to modify this user's data.", HttpStatus.FORBIDDEN);
         }
+    }
+
+    /**
+     * Ensures the user with the given ID exists in the pre-fetched user map and returns the entity.
+     *
+     * @param userMap Map of user ID to User entity
+     * @param userId  The target user ID
+     * @return The User entity
+     * @throws ResourceNotFoundException if user is not in the map
+     */
+    public User validateUserInMap(Map<Integer, User> userMap, Integer userId) {
+        User user = userMap.get(userId);
+        if (user == null) {
+            throw new ResourceNotFoundException("User", "id", userId);
+        }
+        return user;
+    }
+
+    public User validateUserExists(java.util.Optional<User> userOptional, String fieldName, Object fieldValue) {
+        return userOptional.orElseThrow(() -> new ResourceNotFoundException("User", fieldName, fieldValue));
     }
 }

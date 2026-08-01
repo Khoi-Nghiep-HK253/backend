@@ -44,12 +44,16 @@
 | `currencyId` | integer | ✅ | Đơn vị tiền tệ |
 | `categoryId` | integer | ❌ | Danh mục chi tiêu |
 | `expenseDate` | date | ✅ | Ngày phát sinh chi tiêu |
+| `splitType` | string | ❌ | Chế độ chia tiền: `EQUAL` (mặc định), `EXACT`, `PERCENTAGE`, `SHARES`, `ADJUSTMENT` |
 | `payers` | array | ✅ | Danh sách người bỏ tiền ra |
 | `payers[].userId` | integer | ✅ | ID người thanh toán |
 | `payers[].amount` | decimal | ✅ | Số tiền họ đã trả |
 | `shares` | array | ✅ | Danh sách người chia chi phí |
 | `shares[].userId` | integer | ✅ | ID người phải chịu chi phí |
-| `shares[].amount` | decimal | ✅ | Số tiền họ phải chịu |
+| `shares[].amount` | decimal | ❌ | Số tiền (Bắt buộc với `EXACT`) |
+| `shares[].percentage` | decimal | ❌ | Phần trăm (Bắt buộc với `PERCENTAGE`, tổng = 100) |
+| `shares[].ratio` | decimal | ❌ | Số phần/hệ số (Bắt buộc với `SHARES`) |
+| `shares[].adjustment` | decimal | ❌ | Tiền điều chỉnh cộng/trừ (Dùng với `ADJUSTMENT`, tổng = 0) |
 
 > **Validation**: `sum(payers.amount)` phải bằng `totalAmount`  
 > **Validation**: `sum(shares.amount)` phải bằng `totalAmount`

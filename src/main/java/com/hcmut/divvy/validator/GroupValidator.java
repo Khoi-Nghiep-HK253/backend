@@ -1,13 +1,21 @@
 package com.hcmut.divvy.validator;
 
 import com.hcmut.divvy.common.exception.BusinessException;
+import com.hcmut.divvy.common.exception.ResourceNotFoundException;
+import com.hcmut.divvy.entity.Group;
 import com.hcmut.divvy.entity.GroupMember;
 import com.hcmut.divvy.entity.enums.GroupRole;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 public class GroupValidator {
+
+    public Group validateGroupExists(Optional<Group> groupOptional, Integer groupId) {
+        return groupOptional.orElseThrow(() -> new ResourceNotFoundException("Group", "id", groupId));
+    }
 
     public void validateIsMember(GroupMember member) {
         if (member == null) {
