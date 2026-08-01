@@ -6,6 +6,8 @@ import com.hcmut.divvy.dto.request.UpdateGroupRequest;
 import com.hcmut.divvy.dto.response.GroupResponse;
 import com.hcmut.divvy.mapper.GroupMapper;
 import com.hcmut.divvy.service.GroupService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,12 +21,14 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/groups")
 @RequiredArgsConstructor
+@Tag(name = "Group Management", description = "APIs for creating, listing, updating, and deleting expense groups")
 public class GroupController {
 
     private final GroupService groupService;
     private final GroupMapper groupMapper;
 
     @PostMapping
+    @Operation(summary = "Create a new expense group")
     public ResponseEntity<ApiResponse<GroupResponse>> createGroup(
             @Valid @RequestBody CreateGroupRequest request,
             Authentication authentication) {
@@ -34,6 +38,7 @@ public class GroupController {
     }
 
     @GetMapping
+    @Operation(summary = "Get paginated list of groups joined by current user")
     public ResponseEntity<ApiResponse<Page<GroupResponse>>> getMyGroups(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
@@ -46,6 +51,7 @@ public class GroupController {
     }
 
     @GetMapping("/{groupId}")
+    @Operation(summary = "Get group details by ID")
     public ResponseEntity<ApiResponse<GroupResponse>> getGroupById(
             @PathVariable Integer groupId,
             Authentication authentication) {
@@ -54,6 +60,7 @@ public class GroupController {
     }
 
     @PutMapping("/{groupId}")
+    @Operation(summary = "Update group details (Requires OWNER role)")
     public ResponseEntity<ApiResponse<GroupResponse>> updateGroup(
             @PathVariable Integer groupId,
             @RequestBody UpdateGroupRequest request,
@@ -63,6 +70,7 @@ public class GroupController {
     }
 
     @DeleteMapping("/{groupId}")
+    @Operation(summary = "Delete an expense group (Requires OWNER role)")
     public ResponseEntity<ApiResponse<Void>> deleteGroup(
             @PathVariable Integer groupId,
             Authentication authentication) {

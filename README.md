@@ -79,6 +79,13 @@ docker-compose up -d --build
 
 Dịch vụ backend sẽ hoạt động tại: `http://localhost:8080`
 
+### 📘 Tài Liệu API Swagger UI (OpenAPI Docs)
+Sau khi khởi chạy backend, truy cập giao diện thử nghiệm API trực quan Swagger UI tại:
+- **Swagger UI**: `http://localhost:8080/swagger-ui.html`
+- **OpenAPI JSON Spec**: `http://localhost:8080/v3/api-docs`
+
+> 💡 *Hướng dẫn thử nghiệm trên Swagger UI*: Bấm vào nút **Authorize** ở góc phải giao diện Swagger, nhập `Bearer <JWT_TOKEN>` (thu được từ API `/api/auth/login`) để gọi thử tất cả các API Protected dễ dàng.
+
 ### 3. Chạy Trong Môi Trường Phát Triển (Local Dev)
 1. Khởi chạy riêng container Database:
    ```bash
