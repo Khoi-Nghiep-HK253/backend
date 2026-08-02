@@ -19,8 +19,6 @@ public class CreateGroupRequest {
 
     private Integer categoryId;
 
-    private Integer defaultCurrencyId;
-
     private String note;
 
     private LocalDate startDate;

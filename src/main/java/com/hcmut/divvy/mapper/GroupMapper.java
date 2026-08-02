@@ -4,7 +4,6 @@ import com.hcmut.divvy.dto.request.CreateGroupRequest;
 import com.hcmut.divvy.dto.request.UpdateGroupRequest;
 import com.hcmut.divvy.dto.response.GroupResponse;
 import com.hcmut.divvy.entity.Category;
-import com.hcmut.divvy.entity.Currency;
 import com.hcmut.divvy.entity.Group;
 import com.hcmut.divvy.entity.User;
 import com.hcmut.divvy.service.model.*;
@@ -48,11 +47,10 @@ public interface GroupMapper {
     @Mapping(target = "startDate", source = "model.startDate")
     @Mapping(target = "endDate", source = "model.endDate")
     @Mapping(target = "category", source = "category")
-    @Mapping(target = "defaultCurrency", source = "currency")
     @Mapping(target = "createdBy", source = "creator")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    Group toEntity(CreateGroupModel model, User creator, Category category, Currency currency);
+    Group toEntity(CreateGroupModel model, User creator, Category category);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
@@ -61,14 +59,12 @@ public interface GroupMapper {
     @Mapping(target = "startDate", source = "model.startDate")
     @Mapping(target = "endDate", source = "model.endDate")
     @Mapping(target = "category", source = "category")
-    @Mapping(target = "defaultCurrency", source = "currency")
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    void updateEntity(UpdateGroupModel model, Category category, Currency currency, @MappingTarget Group group);
+    void updateEntity(UpdateGroupModel model, Category category, @MappingTarget Group group);
 
     @Mapping(target = "category", source = "category")
-    @Mapping(target = "defaultCurrency", source = "defaultCurrency")
     @Mapping(target = "createdBy", source = "createdBy")
     GroupResponse toResponse(Group group);
 
@@ -77,14 +73,6 @@ public interface GroupMapper {
         return GroupResponse.CategoryInfo.builder()
                 .id(category.getId())
                 .name(category.getName())
-                .build();
-    }
-
-    default GroupResponse.CurrencyInfo toCurrencyInfo(Currency currency) {
-        if (currency == null) return null;
-        return GroupResponse.CurrencyInfo.builder()
-                .id(currency.getId())
-                .code(currency.getAcronym())
                 .build();
     }
 

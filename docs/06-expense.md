@@ -5,7 +5,7 @@
 ---
 
 > ## ⚙️ Expense Creation Flow
-> 1. **Create expense** (description, total amount, category, date)
+> 1. **Create expense** (description, total amount, currency, date)
 > 2. **Declare payer(s)** — who paid out of pocket
 > 3. **Declare share(s)** — who splits the cost and how much
 > 4. **System auto-calculates Debts** based on (payer − share)
@@ -22,7 +22,6 @@
   "description": "Thai hotpot dinner day 1",
   "totalAmount": "1000000.00",
   "currencyId": 1,
-  "categoryId": 2,
   "expenseDate": "2026-08-01",
   "payers": [
     { "userId": 1, "amount": "800000.00" },
@@ -42,7 +41,6 @@
 | `description` | string | ✅ | Expense description |
 | `totalAmount` | decimal | ✅ | Total expense amount |
 | `currencyId` | integer | ✅ | Currency ID |
-| `categoryId` | integer | ❌ | Expense category ID |
 | `expenseDate` | date | ✅ | Date the expense occurred |
 | `splitType` | string | ❌ | Split mode: `EQUAL` (default), `EXACT`, `PERCENTAGE`, `SHARES`, `ADJUSTMENT` |
 | `payers` | array | ✅ | List of people who paid |
@@ -69,7 +67,6 @@
     "description": "Thai hotpot dinner day 1",
     "totalAmount": "1000000.00",
     "currency": { "id": 1, "code": "VND", "symbol": "₫" },
-    "category": { "id": 2, "name": "Food & Dining" },
     "expenseDate": "2026-08-01",
     "payers": [
       { "userId": 1, "username": "hungtri", "amount": "800000.00" },
@@ -101,7 +98,6 @@
 |---|---|---|
 | `page` | integer | Page number (default: 0) |
 | `size` | integer | Items per page (default: 20) |
-| `categoryId` | integer | Filter by category ID |
 | `fromDate` | date | Filter from date (`YYYY-MM-DD`) |
 | `toDate` | date | Filter to date (`YYYY-MM-DD`) |
 
@@ -117,7 +113,6 @@
         "description": "Thai hotpot dinner day 1",
         "totalAmount": "1000000.00",
         "currency": { "code": "VND" },
-        "category": { "name": "Food & Dining" },
         "expenseDate": "2026-08-01",
         "payerCount": 2,
         "shareCount": 4
@@ -147,7 +142,6 @@
     "description": "Thai hotpot dinner day 1",
     "totalAmount": "1000000.00",
     "currency": { "id": 1, "code": "VND" },
-    "category": { "id": 2, "name": "Food & Dining" },
     "expenseDate": "2026-08-01",
     "payers": [ ... ],
     "shares": [ ... ],

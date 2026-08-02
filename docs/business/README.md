@@ -14,6 +14,8 @@ Thư mục này mô tả chi tiết logic nghiệp vụ của từng API trong h
 | [06-expense.md](./06-expense.md) | **Expense** | Tạo/sửa/xóa chi tiêu, tính toán chia tiền |
 | [07-debt.md](./07-debt.md) | **Debt** | Xem công nợ sinh ra từ chi tiêu |
 | [08-settlement.md](./08-settlement.md) | **Settlement** | Ghi nhận thanh toán nợ |
+| [11-category.md](./11-category.md) | **Category** | Quản lý danh mục chi tiêu |
+| [12-currency.md](./12-currency.md) | **Currency** | Quản lý tiền tệ |
 
 ---
 
@@ -21,7 +23,7 @@ Thư mục này mô tả chi tiết logic nghiệp vụ của từng API trong h
 
 ### Xác Thực
 
-Tất cả API (trừ `/api/auth/register`, `/api/auth/login`, `/api/auth/forgot-password`, `/api/auth/verify-reset-token`, `/api/auth/reset-password`) đều yêu cầu:
+Tất cả API (trừ `/api/auth/register`, `/api/auth/login`, `/api/auth/forgot-password`, `/api/auth/verify-reset-token`, `/api/auth/reset-password`, `/api/categories`, `/api/currencies`) đều yêu cầu:
 
 ```
 Authorization: Bearer <JWT_TOKEN>

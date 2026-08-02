@@ -33,9 +33,9 @@ public class GroupController {
      * Create a new expense group.
      * <p>
      * The creator is automatically added to the group with the {@code OWNER} role.
-     * {@code categoryId} and {@code defaultCurrencyId} are optional.
+     * {@code categoryId} is optional.
      *
-     * @param request        group payload (name, note, categoryId, defaultCurrencyId, startDate, endDate)
+     * @param request        group payload (name, note, categoryId, startDate, endDate)
      * @param authentication the currently authenticated user (will become the OWNER)
      * @return {@code 201 Created} with GroupResponse
      */
@@ -100,7 +100,7 @@ public class GroupController {
      * (partial update via MapStruct {@code BeanMapping(nullValuePropertyMappingStrategy = IGNORE)}).
      *
      * @param groupId        the group's ID
-     * @param request        fields to update (name, note, categoryId, defaultCurrencyId, startDate, endDate)
+     * @param request        fields to update (name, note, categoryId, startDate, endDate)
      * @param authentication the currently authenticated user (must be OWNER)
      * @return {@code 200 OK} with the updated GroupResponse;
      *         {@code 404} if the group does not exist; {@code 403} if the caller is not the OWNER

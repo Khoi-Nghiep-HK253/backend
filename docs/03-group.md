@@ -15,7 +15,6 @@
 {
   "name": "Summer Trip 2026",
   "categoryId": 1,
-  "defaultCurrencyId": 1,
   "note": "Team summer outing",
   "startDate": "2026-08-01",
   "endDate": "2026-08-05"
@@ -26,7 +25,6 @@
 |---|---|---|---|
 | `name` | string | ✅ | Group name, max 150 characters |
 | `categoryId` | integer | ❌ | Group category ID |
-| `defaultCurrencyId` | integer | ❌ | Default currency ID |
 | `note` | string | ❌ | Group note |
 | `startDate` | date | ❌ | Start date (`YYYY-MM-DD`) |
 | `endDate` | date | ❌ | End date (`YYYY-MM-DD`) |
@@ -40,7 +38,6 @@
     "id": 10,
     "name": "Summer Trip 2026",
     "category": { "id": 1, "name": "Travel" },
-    "defaultCurrency": { "id": 1, "code": "VND", "symbol": "₫" },
     "note": "Team summer outing",
     "startDate": "2026-08-01",
     "endDate": "2026-08-05",
@@ -74,7 +71,6 @@
         "id": 10,
         "name": "Summer Trip 2026",
         "category": { "id": 1, "name": "Travel" },
-        "defaultCurrency": { "id": 1, "code": "VND", "symbol": "₫" },
         "memberCount": 4,
         "startDate": "2026-08-01",
         "endDate": "2026-08-05"
@@ -103,7 +99,6 @@
     "id": 10,
     "name": "Summer Trip 2026",
     "category": { "id": 1, "name": "Travel" },
-    "defaultCurrency": { "id": 1, "code": "VND", "symbol": "₫" },
     "note": "Team summer outing",
     "startDate": "2026-08-01",
     "endDate": "2026-08-05",

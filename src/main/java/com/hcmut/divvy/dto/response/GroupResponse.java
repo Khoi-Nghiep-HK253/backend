@@ -14,7 +14,6 @@ public class GroupResponse {
     private Integer id;
     private String name;
     private CategoryInfo category;
-    private CurrencyInfo defaultCurrency;
     private String note;
     private LocalDate startDate;
     private LocalDate endDate;
@@ -26,12 +25,6 @@ public class GroupResponse {
     public static class CategoryInfo {
         private Integer id;
         private String name;
-    }
-
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-    public static class CurrencyInfo {
-        private Integer id;
-        private String code;
     }
 
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder

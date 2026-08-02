@@ -19,7 +19,6 @@ public class CreateExpenseModel {
     private String description;
     private BigDecimal totalAmount;
     private Integer currencyId;
-    private Integer categoryId;
     private LocalDate expenseDate;
     private SplitType splitType;
     private List<ExpensePayerRequest> payers;

@@ -4,7 +4,6 @@ import com.hcmut.divvy.common.exception.BusinessException;
 import com.hcmut.divvy.common.exception.ResourceNotFoundException;
 import com.hcmut.divvy.dto.request.ExpensePayerRequest;
 import com.hcmut.divvy.dto.request.ExpenseShareRequest;
-import com.hcmut.divvy.entity.Category;
 import com.hcmut.divvy.entity.Currency;
 import com.hcmut.divvy.entity.Expense;
 import com.hcmut.divvy.entity.GroupMember;
@@ -26,11 +25,6 @@ public class ExpenseValidator {
 
     public Currency validateCurrencyExists(Optional<Currency> currencyOptional, Integer currencyId) {
         return currencyOptional.orElseThrow(() -> new ResourceNotFoundException("Currency", "id", currencyId));
-    }
-
-    public Category validateCategoryExists(Optional<Category> categoryOptional, Integer categoryId) {
-        if (categoryId == null) return null;
-        return categoryOptional.orElseThrow(() -> new ResourceNotFoundException("Category", "id", categoryId));
     }
 
     public void validateIsMember(GroupMember member) {

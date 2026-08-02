@@ -106,7 +106,6 @@ public class DevDataSeeder implements CommandLineRunner {
         // 3. Seed Groups
         Group groupDaLat = groupRepository.save(Group.builder()
                 .category(hotel)
-                .defaultCurrency(vnd)
                 .name("Chuyến đi Đà Lạt")
                 .note("Nhóm bạn đi Đà Lạt 3 ngày 2 đêm")
                 .startDate(LocalDate.of(2026, 8, 1))
@@ -116,7 +115,6 @@ public class DevDataSeeder implements CommandLineRunner {
 
         Group groupHouse = groupRepository.save(Group.builder()
                 .category(food)
-                .defaultCurrency(vnd)
                 .name("Tiền nhà chung cư")
                 .note("Chi phí sinh hoạt hàng tháng")
                 .createdBy(hung)
@@ -141,7 +139,7 @@ public class DevDataSeeder implements CommandLineRunner {
 
         // 6. Seed Sample Expense
         Expense expHotel = expenseRepository.save(Expense.builder()
-                .group(groupDaLat).currency(vnd).category(hotel)
+                .group(groupDaLat).currency(vnd)
                 .description("Đặt phòng khách sạn 2 đêm")
                 .totalAmount(new BigDecimal("2400000.00"))
                 .expenseDate(LocalDate.of(2026, 8, 1))

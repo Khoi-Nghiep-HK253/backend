@@ -27,8 +27,6 @@ public class CreateExpenseRequest {
     @NotNull(message = "Currency ID is required")
     private Integer currencyId;
 
-    private Integer categoryId;
-
     @NotNull(message = "Expense date is required")
     private LocalDate expenseDate;
 

@@ -3,7 +3,6 @@ package com.hcmut.divvy.service.impl;
 import com.hcmut.divvy.common.exception.ResourceNotFoundException;
 import com.hcmut.divvy.dto.response.GroupResponse;
 import com.hcmut.divvy.entity.Category;
-import com.hcmut.divvy.entity.Currency;
 import com.hcmut.divvy.entity.Group;
 import com.hcmut.divvy.entity.GroupMember;
 import com.hcmut.divvy.entity.User;
@@ -28,7 +27,6 @@ public class GroupServiceImpl implements GroupService {
     private final GroupMemberRepository groupMemberRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
-    private final CurrencyRepository currencyRepository;
     private final GroupMapper groupMapper;
     private final GroupMemberMapper groupMemberMapper;
     private final GroupValidator groupValidator;
@@ -38,9 +36,8 @@ public class GroupServiceImpl implements GroupService {
     public GroupResponse create(CreateGroupModel model) {
         User creator = findUser(model.getCurrentUsername());
         Category category = findCategory(model.getCategoryId());
-        Currency currency = findCurrency(model.getDefaultCurrencyId());
 
-        Group group = groupMapper.toEntity(model, creator, category, currency);
+        Group group = groupMapper.toEntity(model, creator, category);
         Group saved = groupRepository.save(group);
 
         groupMemberRepository.save(groupMemberMapper.toEntity(saved, creator, GroupRole.OWNER));
@@ -75,9 +72,8 @@ public class GroupServiceImpl implements GroupService {
         groupValidator.validateIsAdmin(member);
 
         Category category = findCategory(model.getCategoryId());
-        Currency currency = findCurrency(model.getDefaultCurrencyId());
 
-        groupMapper.updateEntity(model, category, currency, group);
+        groupMapper.updateEntity(model, category, group);
 
         return groupMapper.toResponse(groupRepository.save(group));
     }
@@ -107,12 +103,6 @@ public class GroupServiceImpl implements GroupService {
         if (categoryId == null) return null;
         return categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "id", categoryId));
-    }
-
-    private Currency findCurrency(Integer currencyId) {
-        if (currencyId == null) return null;
-        return currencyRepository.findById(currencyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Currency", "id", currencyId));
     }
 
     private GroupMember findMember(Integer groupId, Integer userId) {

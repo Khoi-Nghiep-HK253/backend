@@ -66,15 +66,14 @@ public class ExpenseController {
     }
 
     /**
-     * Retrieve a paginated list of expenses for a group, with optional filters.
+     * Retrieve a paginated list of expenses for a group, with optional date range filters.
      * <p>
      * Results are sorted by {@code expenseDate} and {@code createdAt} descending.
-     * Optional filters: category and date range ({@code fromDate} to {@code toDate}).
+     * Optional filters: date range ({@code fromDate} to {@code toDate}).
      *
      * @param groupId        the group's ID
      * @param page           page number (zero-based, default 0)
      * @param size           page size (default 20)
-     * @param categoryId     optional category filter
      * @param fromDate       optional lower bound date (ISO: yyyy-MM-dd)
      * @param toDate         optional upper bound date (ISO: yyyy-MM-dd)
      * @param authentication the currently authenticated user (must be a group member)
@@ -82,19 +81,18 @@ public class ExpenseController {
      *         {@code 403} if the caller is not a member
      */
     @GetMapping
-    @Operation(summary = "List group expenses", description = "Gets a paginated list of expenses for the group with optional category and date range filters")
+    @Operation(summary = "List group expenses", description = "Gets a paginated list of expenses for the group with optional date range filters")
     public ResponseEntity<ApiResponse<Page<ExpenseSummaryResponse>>> getGroupExpenses(
             @PathVariable Integer groupId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestParam(required = false) Integer categoryId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
             Authentication authentication
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "expenseDate", "createdAt"));
         GetGroupExpensesModel model = expenseMapper.toGetGroupExpensesModel(
-                groupId, authentication.getName(), categoryId, fromDate, toDate, pageable);
+                groupId, authentication.getName(), fromDate, toDate, pageable);
 
         Page<ExpenseSummaryResponse> pageResult = expenseService.getGroupExpenses(model);
         return ResponseEntity.ok(ApiResponse.ok(pageResult, "Expenses retrieved successfully"));

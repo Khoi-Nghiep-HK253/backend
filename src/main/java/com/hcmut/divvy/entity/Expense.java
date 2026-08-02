@@ -12,8 +12,7 @@ import com.hcmut.divvy.entity.enums.SplitType;
 
 @Entity
 @Table(name = "expenses", indexes = {
-    @Index(name = "idx_expenses_group_id", columnList = "group_id"),
-    @Index(name = "idx_expenses_cate_id", columnList = "cate_id")
+    @Index(name = "idx_expenses_group_id", columnList = "group_id")
 })
 @Getter
 @Setter
@@ -33,10 +32,6 @@ public class Expense extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "currency_id", nullable = false)
     private Currency currency;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cate_id")
-    private Category category;
 
     @Column(nullable = false, length = 255)
     private String description;

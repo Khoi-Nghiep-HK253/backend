@@ -19,6 +19,8 @@
 | 🔴 Debt | [07-debt.md](./07-debt.md) | View and track debts |
 | ✅ Settlement | [08-settlement.md](./08-settlement.md) | Record debt payments |
 | 📋 Activity | [09-activity.md](./09-activity.md) | Group activity history |
+| 🏷️ Category | [11-category.md](./11-category.md) | Manage expense categories |
+| 💱 Currency | [12-currency.md](./12-currency.md) | Manage currencies |
 | 🗂️ Reference | [10-reference.md](./10-reference.md) | Enum values, error codes, endpoint index |
 
 ---

@@ -4,7 +4,6 @@ import com.hcmut.divvy.dto.request.ExpensePayerRequest;
 import com.hcmut.divvy.dto.request.ExpenseShareRequest;
 import com.hcmut.divvy.dto.response.ExpenseResponse;
 import com.hcmut.divvy.dto.response.ExpenseSummaryResponse;
-import com.hcmut.divvy.entity.Category;
 import com.hcmut.divvy.entity.Currency;
 import com.hcmut.divvy.entity.Debt;
 import com.hcmut.divvy.entity.Expense;
@@ -38,7 +37,6 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -51,7 +49,6 @@ public class ExpenseServiceImpl implements ExpenseService {
     private final GroupRepository groupRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final CurrencyRepository currencyRepository;
-    private final CategoryRepository categoryRepository;
     private final ExpenseRepository expenseRepository;
     private final ExpensePayerRepository expensePayerRepository;
     private final ExpenseShareRepository expenseShareRepository;
@@ -75,9 +72,6 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         Currency currency = expenseValidator.validateCurrencyExists(currencyRepository.findById(model.getCurrencyId()),
                 model.getCurrencyId());
-        Category category = expenseValidator.validateCategoryExists(
-                model.getCategoryId() != null ? categoryRepository.findById(model.getCategoryId()) : Optional.empty(),
-                model.getCategoryId());
 
         List<GroupMember> groupMembers = groupMemberRepository.findAllByGroupId(group.getId());
         Map<Integer, User> userMap = groupMembers.stream()
@@ -89,7 +83,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         SplitType splitType = model.getSplitType() != null ? model.getSplitType() : SplitType.EQUAL;
 
-        Expense expense = expenseMapper.toEntity(model, group, currency, category, splitType);
+        Expense expense = expenseMapper.toEntity(model, group, currency, splitType);
 
         Expense savedExpense = expenseRepository.save(expense);
 
@@ -122,9 +116,6 @@ public class ExpenseServiceImpl implements ExpenseService {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.equal(root.get("group").get("id"), group.getId()));
 
-            if (model.getCategoryId() != null) {
-                predicates.add(cb.equal(root.get("category").get("id"), model.getCategoryId()));
-            }
             if (model.getFromDate() != null) {
                 predicates.add(cb.greaterThanOrEqualTo(root.get("expenseDate"), model.getFromDate()));
             }
@@ -187,9 +178,6 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         Currency currency = expenseValidator.validateCurrencyExists(currencyRepository.findById(model.getCurrencyId()),
                 model.getCurrencyId());
-        Category category = expenseValidator.validateCategoryExists(
-                model.getCategoryId() != null ? categoryRepository.findById(model.getCategoryId()) : Optional.empty(),
-                model.getCategoryId());
 
         List<GroupMember> groupMembers = groupMemberRepository.findAllByGroupId(group.getId());
         Map<Integer, User> userMap = groupMembers.stream()
@@ -201,7 +189,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         SplitType splitType = model.getSplitType() != null ? model.getSplitType() : SplitType.EQUAL;
 
-        expenseMapper.updateEntity(model, currency, category, splitType, expense);
+        expenseMapper.updateEntity(model, currency, splitType, expense);
 
         Expense updatedExpense = expenseRepository.save(expense);
 

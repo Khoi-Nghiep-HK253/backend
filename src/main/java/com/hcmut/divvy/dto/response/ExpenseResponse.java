@@ -19,7 +19,6 @@ public class ExpenseResponse {
     private String description;
     private BigDecimal totalAmount;
     private CurrencyResponse currency;
-    private CategoryResponse category;
     private LocalDate expenseDate;
     private SplitType splitType;
     private List<ExpensePayerResponse> payers;

@@ -12,7 +12,6 @@ import java.time.LocalDate;
 public class GetGroupExpensesModel {
     private Integer groupId;
     private String currentUsername;
-    private Integer categoryId;
     private LocalDate fromDate;
     private LocalDate toDate;
     private Pageable pageable;

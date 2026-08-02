@@ -29,18 +29,16 @@ Authorization: Bearer <token>
    → Không tìm thấy → 404 NOT_FOUND
 2. Nếu categoryId != null → tìm Category
    → Không tìm thấy → 404 NOT_FOUND
-3. Nếu defaultCurrencyId != null → tìm Currency
-   → Không tìm thấy → 404 NOT_FOUND
-4. Map CreateGroupRequest + creator + category + currency → Group entity (MapStruct)
-5. Lưu Group vào DB
-6. Tạo GroupMember { group, user=creator, role=OWNER } → lưu vào DB
-7. Trả về GroupResponse
+3. Map CreateGroupRequest + creator + category → Group entity (MapStruct)
+4. Lưu Group vào DB
+5. Tạo GroupMember { group, user=creator, role=OWNER } → lưu vào DB
+6. Trả về GroupResponse
 ```
 
 ### Quy Tắc
 
 - Người tạo nhóm tự động trở thành **OWNER** duy nhất ban đầu.
-- `categoryId` và `defaultCurrencyId` là tùy chọn (có thể null).
+- `categoryId` là tùy chọn (có thể null).
 
 ---
 
@@ -102,10 +100,9 @@ Authorization: Bearer <token>
 4. Kiểm tra quyền OWNER:
    → Không phải OWNER → 403 FORBIDDEN "Only group owners can perform this action."
 5. Nếu categoryId mới != null → tìm Category mới
-6. Nếu defaultCurrencyId mới != null → tìm Currency mới
-7. Cập nhật Group bằng MapStruct (BeanMapping IGNORE_NULL):
+6. Cập nhật Group bằng MapStruct (BeanMapping IGNORE_NULL):
    → Chỉ các trường được gửi mới được cập nhật
-8. Lưu Group, trả về GroupResponse cập nhật
+7. Lưu Group, trả về GroupResponse cập nhật
 ```
 
 ### Các Điều Kiện Kiểm Tra

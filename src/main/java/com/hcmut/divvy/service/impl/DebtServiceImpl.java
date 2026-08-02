@@ -85,7 +85,7 @@ public class DebtServiceImpl implements DebtService {
 
         Map<String, DebtPairAggregate> summaryMap = new LinkedHashMap<>();
 
-        String defaultCurrencyCode = group.getDefaultCurrency() != null ? group.getDefaultCurrency().getAcronym() : "VND";
+        String defaultCurrencyCode = "VND";
 
         for (Debt debt : pendingDebts) {
             String key = debt.getFromUser().getId() + "_" + debt.getToUser().getId();

@@ -117,6 +117,24 @@
 | GET | `/api/groups/{groupId}/activities` | Group activity history |
 | GET | `/api/users/{userId}/activities` | User activity history |
 
+### 🏷️ Category
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/categories` | List all categories |
+| GET | `/api/categories/{id}` | Get category detail |
+| POST | `/api/categories` | Create a category |
+| PUT | `/api/categories/{id}` | Update a category |
+| DELETE | `/api/categories/{id}` | Delete a category |
+
+### 💱 Currency
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/currencies` | List all currencies |
+| GET | `/api/currencies/{id}` | Get currency detail |
+| POST | `/api/currencies` | Create a currency |
+| PUT | `/api/currencies/{id}` | Update a currency |
+| DELETE | `/api/currencies/{id}` | Delete a currency |
+
 ---
 
 ## Authorization Summary

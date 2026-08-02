@@ -27,10 +27,6 @@ public class Group extends BaseEntity {
     @JoinColumn(name = "cate_id")
     private Category category;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "default_currency_id")
-    private Currency defaultCurrency;
-
     @Column(nullable = false, length = 150)
     private String name;
 

@@ -26,11 +26,10 @@ public interface ExpenseMapper {
     @Mapping(target = "currentUsername", source = "currentUsername")
     UpdateExpenseModel toModel(UpdateExpenseRequest request, Integer groupId, Integer expenseId, String currentUsername);
 
-    default GetGroupExpensesModel toGetGroupExpensesModel(Integer groupId, String currentUsername, Integer categoryId, LocalDate fromDate, LocalDate toDate, Pageable pageable) {
+    default GetGroupExpensesModel toGetGroupExpensesModel(Integer groupId, String currentUsername, LocalDate fromDate, LocalDate toDate, Pageable pageable) {
         return GetGroupExpensesModel.builder()
                 .groupId(groupId)
                 .currentUsername(currentUsername)
-                .categoryId(categoryId)
                 .fromDate(fromDate)
                 .toDate(toDate)
                 .pageable(pageable)
@@ -56,27 +55,25 @@ public interface ExpenseMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "group", source = "group")
     @Mapping(target = "currency", source = "currency")
-    @Mapping(target = "category", source = "category")
     @Mapping(target = "description", source = "model.description")
     @Mapping(target = "totalAmount", source = "model.totalAmount")
     @Mapping(target = "splitType", source = "splitType")
     @Mapping(target = "expenseDate", source = "model.expenseDate")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    Expense toEntity(CreateExpenseModel model, Group group, Currency currency, Category category, SplitType splitType);
+    Expense toEntity(CreateExpenseModel model, Group group, Currency currency, SplitType splitType);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "group", ignore = true)
     @Mapping(target = "currency", source = "currency")
-    @Mapping(target = "category", source = "category")
     @Mapping(target = "description", source = "model.description")
     @Mapping(target = "totalAmount", source = "model.totalAmount")
     @Mapping(target = "splitType", source = "splitType")
     @Mapping(target = "expenseDate", source = "model.expenseDate")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    void updateEntity(UpdateExpenseModel model, Currency currency, Category category, SplitType splitType, @MappingTarget Expense expense);
+    void updateEntity(UpdateExpenseModel model, Currency currency, SplitType splitType, @MappingTarget Expense expense);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "expense", source = "expense")
@@ -142,7 +139,6 @@ public interface ExpenseMapper {
                 .description(expense.getDescription())
                 .totalAmount(expense.getTotalAmount())
                 .currency(toCurrencyResponse(expense.getCurrency()))
-                .category(toCategoryResponse(expense.getCategory()))
                 .expenseDate(expense.getExpenseDate())
                 .splitType(expense.getSplitType())
                 .payerCount(payerCount)
@@ -158,7 +154,6 @@ public interface ExpenseMapper {
                 .description(expense.getDescription())
                 .totalAmount(expense.getTotalAmount())
                 .currency(toCurrencyResponse(expense.getCurrency()))
-                .category(toCategoryResponse(expense.getCategory()))
                 .expenseDate(expense.getExpenseDate())
                 .splitType(expense.getSplitType())
                 .payers(payers != null ? payers.stream().map(this::toPayerResponse).toList() : List.of())
@@ -183,15 +178,6 @@ public interface ExpenseMapper {
                 .id(currency.getId())
                 .code(currency.getAcronym())
                 .name(currency.getName())
-                .build();
-    }
-
-    default CategoryResponse toCategoryResponse(Category category) {
-        if (category == null) return null;
-        return CategoryResponse.builder()
-                .id(category.getId())
-                .name(category.getName())
-                .icon(category.getIcon())
                 .build();
     }
 }

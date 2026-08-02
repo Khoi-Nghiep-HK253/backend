@@ -59,6 +59,8 @@ Pure components — no repository injection. The service fetches data and passes
 - `GroupMemberValidator` — Add/remove rules and last-owner protection.
 - `InvitationValidator` — Send, accept, decline, and revoke rules.
 - `ExpenseValidator` / `DebtValidator` / `SettlementValidator` — Domain invariants.
+- `CategoryValidator` — Category existence and name uniqueness checks.
+- `CurrencyValidator` — Currency existence and acronym uniqueness checks.
 - `PasswordResetValidator` — Token validity, usage state, and expiry.
 
 **Enum System** (`com.hcmut.divvy.entity.enums`):
@@ -140,6 +142,10 @@ Once the service is running, the interactive API explorer is available at:
 | `POST` | `/api/auth/forgot-password` | Request a password-reset email |
 | `GET` | `/api/auth/reset-password/verify` | Verify a password-reset token |
 | `POST` | `/api/auth/reset-password` | Set a new password |
+| `GET` | `/api/categories` | List all categories |
+| `GET` | `/api/categories/{id}` | Get category detail |
+| `GET` | `/api/currencies` | List all currencies |
+| `GET` | `/api/currencies/{id}` | Get currency detail |
 | `GET` | `/actuator/**` | Health check & metrics |
 
 ### Protected (`Authorization: Bearer <JWT>` required)
@@ -155,6 +161,8 @@ Once the service is running, the interactive API explorer is available at:
 | `/api/groups/{id}/expenses/**` | Expense management |
 | `/api/groups/{id}/debts/**` | Debt tracking |
 | `/api/groups/{id}/settlements/**` | Settlement recording |
+| `/api/categories/**` | Category creation, update, and deletion |
+| `/api/currencies/**` | Currency creation, update, and deletion |
 
 ---
 
@@ -205,4 +213,8 @@ When running with the `dev` profile, `DevDataSeeder` automatically populates sam
 | [docs/06-expense.md](./docs/06-expense.md) | Expense API spec |
 | [docs/07-debt.md](./docs/07-debt.md) | Debt API spec |
 | [docs/08-settlement.md](./docs/08-settlement.md) | Settlement API spec |
+| [docs/09-activity.md](./docs/09-activity.md) | Activity log API spec |
+| [docs/10-reference.md](./docs/10-reference.md) | Enum reference & endpoint index |
+| [docs/11-category.md](./docs/11-category.md) | Category API spec |
+| [docs/12-currency.md](./docs/12-currency.md) | Currency API spec |
 | [docs/business/](./docs/business/) | Detailed business logic per module |

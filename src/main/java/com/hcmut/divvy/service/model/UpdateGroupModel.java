@@ -14,7 +14,6 @@ public class UpdateGroupModel {
     private String description;
     private String note;
     private Integer categoryId;
-    private Integer defaultCurrencyId;
     private LocalDate startDate;
     private LocalDate endDate;
     private String currentUsername;
