@@ -19,6 +19,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -74,8 +75,15 @@ public class SettlementServiceImpl implements SettlementService {
 
         Settlement savedSettlement = settlementRepository.save(settlement);
 
-        // Update debt status to SETTLED
-        debt.setStatus(DebtStatus.SETTLED);
+        // Update remaining debt amount & status
+        BigDecimal remainingAmount = debt.getAmount().subtract(model.getAmount());
+        if (remainingAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            debt.setAmount(BigDecimal.ZERO);
+            debt.setStatus(DebtStatus.SETTLED);
+        } else {
+            debt.setAmount(remainingAmount);
+            debt.setStatus(DebtStatus.PENDING);
+        }
         debtRepository.save(debt);
 
         return settlementMapper.toSettlementResponse(savedSettlement, debt);
