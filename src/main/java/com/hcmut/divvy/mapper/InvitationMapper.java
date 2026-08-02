@@ -17,6 +17,7 @@ public interface InvitationMapper {
 
     @Mapping(target = "groupId", source = "groupId")
     @Mapping(target = "currentUsername", source = "currentUsername")
+    @Mapping(target = "usernameOrEmail", ignore = true)
     SendInvitationModel toModel(SendInvitationRequest request, Integer groupId, String currentUsername);
 
     default GetGroupInvitationsModel toGetGroupInvitationsModel(Integer groupId, InvitationStatus status, String currentUsername) {

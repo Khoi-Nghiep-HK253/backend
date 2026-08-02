@@ -11,7 +11,6 @@ import java.time.LocalDate;
 public class UpdateGroupModel {
     private Integer groupId;
     private String name;
-    private String description;
     private String note;
     private Integer categoryId;
     private LocalDate startDate;

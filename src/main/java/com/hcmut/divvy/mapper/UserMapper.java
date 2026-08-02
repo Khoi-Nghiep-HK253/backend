@@ -24,6 +24,7 @@ public interface UserMapper {
 
     @Mapping(target = "id", source = "id")
     @Mapping(target = "currentUsername", source = "currentUsername")
+    @Mapping(target = "oldPassword", source = "request.currentPassword")
     ChangePasswordModel toModel(ChangePasswordRequest request, Integer id, String currentUsername);
 
     UserResponse toResponse(User user);
