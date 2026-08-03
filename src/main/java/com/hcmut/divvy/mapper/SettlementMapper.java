@@ -63,6 +63,7 @@ public interface SettlementMapper {
                 .toUser(toUserInfoResponse(settlement.getToUser()))
                 .amount(settlement.getAmount())
                 .method(settlement.getMethod())
+                .note(settlement.getNote())
                 .paidAt(settlement.getPaidAt())
                 .build();
     }

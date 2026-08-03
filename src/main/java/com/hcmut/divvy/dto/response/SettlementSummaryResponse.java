@@ -16,5 +16,6 @@ public class SettlementSummaryResponse {
     private DebtUserInfoResponse toUser;
     private BigDecimal amount;
     private String method;
+    private String note;
     private LocalDateTime paidAt;
 }

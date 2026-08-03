@@ -83,9 +83,9 @@ public class InvitationServiceImpl implements InvitationService {
     public List<InvitationResponse> getMyInvitations(GetMyInvitationsModel model) {
         User caller = findUserByUsername(model.getCurrentUsername());
 
-        InvitationStatus targetStatus = model.getStatus() != null ? model.getStatus() : InvitationStatus.PENDING;
-        List<GroupInvitation> invitations = groupInvitationRepository.findAllByInviteeIdAndStatus(caller.getId(),
-                targetStatus);
+        List<GroupInvitation> invitations = model.getStatus() != null
+                ? groupInvitationRepository.findAllByInviteeIdAndStatus(caller.getId(), model.getStatus())
+                : groupInvitationRepository.findAllByInviteeId(caller.getId());
 
         return invitations.stream()
                 .map(invitationMapper::toResponse)
