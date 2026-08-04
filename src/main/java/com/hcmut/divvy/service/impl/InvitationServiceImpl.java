@@ -18,11 +18,13 @@ import com.hcmut.divvy.repository.GroupInvitationRepository;
 import com.hcmut.divvy.repository.GroupMemberRepository;
 import com.hcmut.divvy.repository.GroupRepository;
 import com.hcmut.divvy.repository.UserRepository;
+import com.hcmut.divvy.service.EmailService;
 import com.hcmut.divvy.service.InvitationService;
 import com.hcmut.divvy.service.model.*;
 import com.hcmut.divvy.validator.GroupValidator;
 import com.hcmut.divvy.validator.InvitationValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +45,10 @@ public class InvitationServiceImpl implements InvitationService {
     private final GroupMemberMapper groupMemberMapper;
     private final InvitationValidator invitationValidator;
     private final GroupValidator groupValidator;
+    private final EmailService emailService;
+
+    @Value("${app.frontend.url:http://localhost:3000}")
+    private String frontendUrl;
 
     @Override
     @Transactional
@@ -61,8 +67,15 @@ public class InvitationServiceImpl implements InvitationService {
         GroupInvitation invitation = invitationMapper.toEntity(model, group, inviter, invitee, token);
 
         GroupInvitation saved = groupInvitationRepository.save(invitation);
+
+        // Send Group Invitation Email asynchronously
+        String inviteLink = frontendUrl + "/invitations/accept?token=" + saved.getToken();
+        String inviterDisplayName = inviter.getFirstname() != null ? inviter.getFirstname() + " " + inviter.getLastname() : inviter.getUsername();
+        emailService.sendGroupInvitationEmail(invitee.getEmail(), inviterDisplayName, group.getName(), inviteLink, saved.getMessage());
+
         return invitationMapper.toResponse(saved);
     }
+
 
     @Override
     public List<InvitationResponse> getGroupInvitations(GetGroupInvitationsModel model) {

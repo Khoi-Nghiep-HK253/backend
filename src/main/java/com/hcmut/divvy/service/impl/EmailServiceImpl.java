@@ -6,10 +6,14 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Service
@@ -23,6 +27,15 @@ public class EmailServiceImpl implements EmailService {
 
     @Value("${app.mail.enabled:true}")
     private boolean mailEnabled;
+
+    @Value("classpath:templates/email/password-reset.html")
+    private Resource passwordResetTemplateResource;
+
+    @Value("classpath:templates/email/group-invitation.html")
+    private Resource invitationTemplateResource;
+
+    @Value("classpath:templates/email/personal-message.html")
+    private Resource personalMessageTemplateResource;
 
     @Override
     @Async
@@ -42,7 +55,7 @@ public class EmailServiceImpl implements EmailService {
             helper.setFrom(fromAddress);
             helper.setTo(toEmail);
             helper.setSubject("[Divvy] Reset your password");
-            helper.setText(buildEmailBody(resetLink), true);
+            helper.setText(buildResetEmailBody(resetLink), true);
 
             mailSender.send(message);
             log.info("Password reset email sent to {}", toEmail);
@@ -52,24 +65,58 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
-    private String buildEmailBody(String resetLink) {
-        return """
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 24px; border: 1px solid #e0e0e0; border-radius: 8px;">
-                    <h2 style="color: #4f46e5;">🔐 Divvy — Reset your password</h2>
-                    <p>You requested to reset your password. Click the button below to set a new one.</p>
-                    <p style="text-align: center; margin: 32px 0;">
-                        <a href="%s"
-                           style="background-color: #4f46e5; color: white; padding: 12px 28px;
-                                  border-radius: 6px; text-decoration: none; font-weight: bold;">
-                            Reset Password
-                        </a>
-                    </p>
-                    <p style="color: #666; font-size: 13px;">This link will expire in <strong>30 minutes</strong>.</p>
-                    <p style="color: #666; font-size: 13px;">If you did not request this, you can safely ignore this email.</p>
-                    <hr style="margin-top: 32px; border: none; border-top: 1px solid #e0e0e0;"/>
-                    <p style="color: #aaa; font-size: 12px;">© Divvy App</p>
-                </div>
-                """
-                .formatted(resetLink);
+    @Override
+    @Async
+    public void sendGroupInvitationEmail(String toEmail, String inviterName, String groupName, String inviteLink, String personalMessage) {
+        if (!mailEnabled) {
+            log.warn("========================================================");
+            log.warn("[DEV MODE] Group invitation email for {}:", toEmail);
+            log.warn("  Inviter: {}, Group: {}", inviterName, groupName);
+            log.warn("  Link: {}", inviteLink);
+            log.warn("========================================================");
+            return;
+        }
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromAddress);
+            helper.setTo(toEmail);
+            helper.setSubject("[Divvy] " + inviterName + " đã mời bạn tham gia nhóm \"" + groupName + "\"");
+            helper.setText(buildInvitationEmailBody(inviterName, groupName, inviteLink, personalMessage), true);
+
+            mailSender.send(message);
+            log.info("Group invitation email sent to {} for group '{}'", toEmail, groupName);
+
+        } catch (MessagingException e) {
+            log.error("Failed to send group invitation email to {}: {}", toEmail, e.getMessage());
+        }
+    }
+
+    private String buildResetEmailBody(String resetLink) {
+        try {
+            String template = passwordResetTemplateResource.getContentAsString(StandardCharsets.UTF_8);
+            return template.formatted(resetLink);
+        } catch (IOException e) {
+            log.error("Failed to read password reset email template", e);
+            throw new RuntimeException("Could not load email template", e);
+        }
+    }
+
+    private String buildInvitationEmailBody(String inviterName, String groupName, String inviteLink, String personalMessage) {
+        try {
+            String messageSection = "";
+            if (personalMessage != null && !personalMessage.isBlank()) {
+                String messageTemplate = personalMessageTemplateResource.getContentAsString(StandardCharsets.UTF_8);
+                messageSection = messageTemplate.formatted(personalMessage);
+            }
+
+            String template = invitationTemplateResource.getContentAsString(StandardCharsets.UTF_8);
+            return template.formatted(inviterName, groupName, messageSection, inviteLink, inviteLink);
+        } catch (IOException e) {
+            log.error("Failed to read group invitation email template", e);
+            throw new RuntimeException("Could not load email template", e);
+        }
     }
 }

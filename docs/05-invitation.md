@@ -40,7 +40,7 @@
     "createdAt": "2026-07-31T15:00:00"
   }
 }
-```
+> 📧 **Tự động gửi Email**: Ngay sau khi gửi lời mời thành công, hệ thống sẽ tự động gửi 1 Email HTML bất đồng bộ tới email của người được mời (`invitee.email`) chứa liên kết chấp nhận lời mời trực tiếp: `{frontendUrl}/invitations/accept?token={token}`.
 
 ### Common Errors
 | Status | Cause |
