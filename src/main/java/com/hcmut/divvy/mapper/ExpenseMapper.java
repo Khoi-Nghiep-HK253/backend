@@ -59,9 +59,10 @@ public interface ExpenseMapper {
     @Mapping(target = "totalAmount", source = "model.totalAmount")
     @Mapping(target = "splitType", source = "splitType")
     @Mapping(target = "expenseDate", source = "model.expenseDate")
+    @Mapping(target = "createdBy", source = "createdBy")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    Expense toEntity(CreateExpenseModel model, Group group, Currency currency, SplitType splitType);
+    Expense toEntity(CreateExpenseModel model, Group group, Currency currency, SplitType splitType, User createdBy);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
@@ -71,6 +72,7 @@ public interface ExpenseMapper {
     @Mapping(target = "totalAmount", source = "model.totalAmount")
     @Mapping(target = "splitType", source = "splitType")
     @Mapping(target = "expenseDate", source = "model.expenseDate")
+    @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     void updateEntity(UpdateExpenseModel model, Currency currency, SplitType splitType, @MappingTarget Expense expense);
@@ -132,7 +134,7 @@ public interface ExpenseMapper {
                 .build();
     }
 
-    default ExpenseSummaryResponse toSummaryResponse(Expense expense, int payerCount, int shareCount) {
+    default ExpenseSummaryResponse toSummaryResponse(Expense expense, int payerCount, int shareCount, String createdByName) {
         if (expense == null) return null;
         return ExpenseSummaryResponse.builder()
                 .id(expense.getId())
@@ -143,11 +145,13 @@ public interface ExpenseMapper {
                 .splitType(expense.getSplitType())
                 .payerCount(payerCount)
                 .shareCount(shareCount)
+                .createdByName(createdByName)
                 .build();
     }
 
     default ExpenseResponse toExpenseResponse(Expense expense, List<ExpensePayer> payers, List<ExpenseShare> shares, List<Debt> debts) {
         if (expense == null) return null;
+        String createdByName = expense.getCreatedBy() != null ? expense.getCreatedBy().getUsername() : null;
         return ExpenseResponse.builder()
                 .id(expense.getId())
                 .group(toGroupResponse(expense.getGroup()))
@@ -156,6 +160,7 @@ public interface ExpenseMapper {
                 .currency(toCurrencyResponse(expense.getCurrency()))
                 .expenseDate(expense.getExpenseDate())
                 .splitType(expense.getSplitType())
+                .createdByName(createdByName)
                 .payers(payers != null ? payers.stream().map(this::toPayerResponse).toList() : List.of())
                 .shares(shares != null ? shares.stream().map(this::toShareResponse).toList() : List.of())
                 .debtsCreated(debts != null ? debts.stream().map(this::toDebtResponse).toList() : List.of())

@@ -25,141 +25,161 @@ import java.util.List;
 @Slf4j
 public class DevDataSeeder implements CommandLineRunner {
 
-    private final UserRepository userRepository;
-    private final CurrencyRepository currencyRepository;
-    private final CategoryRepository categoryRepository;
-    private final GroupRepository groupRepository;
-    private final GroupMemberRepository groupMemberRepository;
-    private final GroupInvitationRepository groupInvitationRepository;
-    private final ExpenseRepository expenseRepository;
-    private final ExpensePayerRepository expensePayerRepository;
-    private final ExpenseShareRepository expenseShareRepository;
-    private final ActivityRepository activityRepository;
-    private final PasswordEncoder passwordEncoder;
+        private final UserRepository userRepository;
+        private final CurrencyRepository currencyRepository;
+        private final CategoryRepository categoryRepository;
+        private final GroupRepository groupRepository;
+        private final GroupMemberRepository groupMemberRepository;
+        private final GroupInvitationRepository groupInvitationRepository;
+        private final ExpenseRepository expenseRepository;
+        private final ExpensePayerRepository expensePayerRepository;
+        private final ExpenseShareRepository expenseShareRepository;
+        private final ActivityRepository activityRepository;
+        private final PasswordEncoder passwordEncoder;
 
-    @Override
-    @Transactional
-    public void run(String... args) throws Exception {
-        // 1. Seed Reference Currencies & Categories if not present
-        Currency vnd = currencyRepository.findByAcronym("VND")
-                .orElseGet(() -> currencyRepository.save(Currency.builder().name("Vietnamese Dong").acronym("VND").build()));
-        currencyRepository.findByAcronym("USD")
-                .orElseGet(() -> currencyRepository.save(Currency.builder().name("US Dollar").acronym("USD").build()));
+        @Override
+        @Transactional
+        public void run(String... args) throws Exception {
+                // 1. Seed Reference Currencies & Categories if not present
+                Currency vnd = currencyRepository.findByAcronym("VND")
+                                .orElseGet(() -> currencyRepository.save(
+                                                Currency.builder().name("Vietnamese Dong").acronym("VND").build()));
+                currencyRepository.findByAcronym("USD")
+                                .orElseGet(() -> currencyRepository
+                                                .save(Currency.builder().name("US Dollar").acronym("USD").build()));
 
-        Category food = categoryRepository.findByName("Ăn uống")
-                .orElseGet(() -> categoryRepository.save(Category.builder().name("Ăn uống").icon("food").build()));
-        categoryRepository.findByName("Di chuyển")
-                .orElseGet(() -> categoryRepository.save(Category.builder().name("Di chuyển").icon("transport").build()));
-        Category hotel = categoryRepository.findByName("Nhà ở / Khách sạn")
-                .orElseGet(() -> categoryRepository.save(Category.builder().name("Nhà ở / Khách sạn").icon("hotel").build()));
-        categoryRepository.findByName("Giải trí")
-                .orElseGet(() -> categoryRepository.save(Category.builder().name("Giải trí").icon("entertainment").build()));
-        categoryRepository.findByName("Mua sắm")
-                .orElseGet(() -> categoryRepository.save(Category.builder().name("Mua sắm").icon("shopping").build()));
-        categoryRepository.findByName("Khác")
-                .orElseGet(() -> categoryRepository.save(Category.builder().name("Khác").icon("other").build()));
+                Category food = categoryRepository.findByName("Ăn uống")
+                                .orElseGet(() -> categoryRepository
+                                                .save(Category.builder().name("Ăn uống").icon("food").build()));
+                categoryRepository.findByName("Di chuyển")
+                                .orElseGet(() -> categoryRepository
+                                                .save(Category.builder().name("Di chuyển").icon("transport").build()));
+                Category hotel = categoryRepository.findByName("Nhà ở / Khách sạn")
+                                .orElseGet(() -> categoryRepository.save(
+                                                Category.builder().name("Nhà ở / Khách sạn").icon("hotel").build()));
+                categoryRepository.findByName("Giải trí")
+                                .orElseGet(() -> categoryRepository.save(
+                                                Category.builder().name("Giải trí").icon("entertainment").build()));
+                categoryRepository.findByName("Mua sắm")
+                                .orElseGet(() -> categoryRepository
+                                                .save(Category.builder().name("Mua sắm").icon("shopping").build()));
+                categoryRepository.findByName("Khác")
+                                .orElseGet(() -> categoryRepository
+                                                .save(Category.builder().name("Khác").icon("other").build()));
 
-        if (userRepository.count() > 0) {
-            log.info("Database already contains user data. Skipping sample users/groups seeding.");
-            return;
+                if (userRepository.count() > 0) {
+                        log.info("Database already contains user data. Skipping sample users/groups seeding.");
+                        return;
+                }
+
+                log.info("===============================================================================");
+                log.info("Initializing Dev Sample Data via Java DevDataSeeder...");
+                log.info("===============================================================================");
+
+                // 2. Seed Users with BCrypt encoded password "123456"
+                String defaultPassword = passwordEncoder.encode("123456");
+
+                User thung = userRepository.save(User.builder()
+                                .username("trihung")
+                                .firstname("Hung").lastname("Doan")
+                                .phone("0901111111").email("koikoidth12@gmail.com")
+                                .hashPassword(defaultPassword).role(UserRole.USER).build());
+
+                User vietAnh = userRepository.save(User.builder()
+                                .username("vietanh")
+                                .firstname("Anh").lastname("Pham")
+                                .phone("0902222222").email("anh.phamviet241103@hcmut.edu.vn")
+                                .hashPassword(defaultPassword).role(UserRole.USER).build());
+
+                User dhung = userRepository.save(User.builder()
+                                .username("duyhung")
+                                .firstname("Hung").lastname("Pham")
+                                .phone("0903333333").email("hung.phamdh@hcmut.edu.vn")
+                                .hashPassword(defaultPassword).role(UserRole.USER).build());
+
+                User thu = userRepository.save(User.builder()
+                                .username("thunguyen")
+                                .firstname("Thu").lastname("Nguyen")
+                                .phone("0904444444").email("thu.nguyen231@hcmut.edu.vn")
+                                .hashPassword(defaultPassword).role(UserRole.USER).build());
+
+                userRepository.save(User.builder()
+                                .username("adminuser")
+                                .firstname("Admin").lastname("System")
+                                .phone("0900000000").email("admin@example.com")
+                                .hashPassword(defaultPassword).role(UserRole.ADMIN).build());
+
+                log.info("Seeded 5 sample Users (password: 123456).");
+
+                // 3. Seed Groups
+                Group groupDaLat = groupRepository.save(Group.builder()
+                                .category(hotel)
+                                .name("Chuyến đi Đà Lạt")
+                                .note("Nhóm bạn đi Đà Lạt 3 ngày 2 đêm")
+                                .startDate(LocalDate.of(2026, 8, 1))
+                                .endDate(LocalDate.of(2026, 8, 3))
+                                .createdBy(thung)
+                                .build());
+
+                Group groupHouse = groupRepository.save(Group.builder()
+                                .category(food)
+                                .name("Tiền nhà chung cư")
+                                .note("Chi phí sinh hoạt hàng tháng")
+                                .createdBy(thung)
+                                .build());
+
+                // 4. Seed Group Members
+                groupMemberRepository
+                                .save(GroupMember.builder().group(groupDaLat).user(thung).role(GroupRole.OWNER)
+                                                .build());
+                groupMemberRepository.save(
+                                GroupMember.builder().group(groupDaLat).user(vietAnh).role(GroupRole.MEMBER).build());
+                groupMemberRepository
+                                .save(GroupMember.builder().group(groupDaLat).user(dhung).role(GroupRole.MEMBER)
+                                                .build());
+                groupMemberRepository.save(
+                                GroupMember.builder().group(groupDaLat).user(thu).role(GroupRole.MEMBER).build());
+
+                groupMemberRepository
+                                .save(GroupMember.builder().group(groupHouse).user(thung).role(GroupRole.OWNER)
+                                                .build());
+                groupMemberRepository.save(
+                                GroupMember.builder().group(groupHouse).user(vietAnh).role(GroupRole.MEMBER).build());
+
+                // 5. Seed Invitations
+                groupInvitationRepository.save(GroupInvitation.builder()
+                                .group(groupDaLat).inviter(thung).invitee(thu)
+                                .status(InvitationStatus.ACCEPTED).token("tok_abc123")
+                                .message("Đi Đà Lạt cùng bọn mình nhé!")
+                                .expiresAt(LocalDateTime.of(2026, 7, 30, 0, 0))
+                                .build());
+
+                // 6. Seed Sample Expense
+                Expense expHotel = expenseRepository.save(Expense.builder()
+                                .group(groupDaLat).currency(vnd)
+                                .createdBy(thung)
+                                .description("Đặt phòng khách sạn 2 đêm")
+                                .totalAmount(new BigDecimal("2400000.00"))
+                                .expenseDate(LocalDate.of(2026, 8, 1))
+                                .build());
+
+                expensePayerRepository.save(ExpensePayer.builder().expense(expHotel).user(thung)
+                                .amount(new BigDecimal("2400000.00")).build());
+
+                for (User member : List.of(thung, vietAnh, dhung, thu)) {
+                        expenseShareRepository.save(ExpenseShare.builder().expense(expHotel).user(member)
+                                        .amount(new BigDecimal("600000.00")).build());
+                }
+
+                // 7. Seed Activity Log
+                activityRepository.save(Activity.builder()
+                                .user(thung).entityType("GROUP").entityId(groupDaLat.getId())
+                                .topic("Tạo nhóm").description("hungtri đã tạo nhóm 'Chuyến đi Đà Lạt'")
+                                .build());
+
+                log.info("===============================================================================");
+                log.info("SUCCESS: Java DevDataSeeder finished populating sample data!");
+                log.info("Sample logins: [hungtri, vietanh, anle, binhpham, adminuser] / password: 123456");
+                log.info("===============================================================================");
         }
-
-        log.info("===============================================================================");
-        log.info("Initializing Dev Sample Data via Java DevDataSeeder...");
-        log.info("===============================================================================");
-
-        // 2. Seed Users with BCrypt encoded password "123456"
-        String defaultPassword = passwordEncoder.encode("123456");
-
-        User hung = userRepository.save(User.builder()
-                .username("hungtri")
-                .firstname("Hung").lastname("Tri")
-                .phone("0901111111").email("hung@example.com")
-                .hashPassword(defaultPassword).role(UserRole.USER).build());
-
-        User khanh = userRepository.save(User.builder()
-                .username("khanhnt")
-                .firstname("Khanh").lastname("Nguyen")
-                .phone("0902222222").email("khanh@example.com")
-                .hashPassword(defaultPassword).role(UserRole.USER).build());
-
-        User an = userRepository.save(User.builder()
-                .username("anle")
-                .firstname("An").lastname("Le")
-                .phone("0903333333").email("an@example.com")
-                .hashPassword(defaultPassword).role(UserRole.USER).build());
-
-        User binh = userRepository.save(User.builder()
-                .username("binhpham")
-                .firstname("Binh").lastname("Pham")
-                .phone("0904444444").email("binh@example.com")
-                .hashPassword(defaultPassword).role(UserRole.USER).build());
-
-        userRepository.save(User.builder()
-                .username("adminuser")
-                .firstname("Admin").lastname("System")
-                .phone("0900000000").email("admin@example.com")
-                .hashPassword(defaultPassword).role(UserRole.ADMIN).build());
-
-        log.info("Seeded 5 sample Users (password: 123456).");
-
-        // 3. Seed Groups
-        Group groupDaLat = groupRepository.save(Group.builder()
-                .category(hotel)
-                .name("Chuyến đi Đà Lạt")
-                .note("Nhóm bạn đi Đà Lạt 3 ngày 2 đêm")
-                .startDate(LocalDate.of(2026, 8, 1))
-                .endDate(LocalDate.of(2026, 8, 3))
-                .createdBy(hung)
-                .build());
-
-        Group groupHouse = groupRepository.save(Group.builder()
-                .category(food)
-                .name("Tiền nhà chung cư")
-                .note("Chi phí sinh hoạt hàng tháng")
-                .createdBy(hung)
-                .build());
-
-        // 4. Seed Group Members
-        groupMemberRepository.save(GroupMember.builder().group(groupDaLat).user(hung).role(GroupRole.OWNER).build());
-        groupMemberRepository.save(GroupMember.builder().group(groupDaLat).user(khanh).role(GroupRole.MEMBER).build());
-        groupMemberRepository.save(GroupMember.builder().group(groupDaLat).user(an).role(GroupRole.MEMBER).build());
-        groupMemberRepository.save(GroupMember.builder().group(groupDaLat).user(binh).role(GroupRole.MEMBER).build());
-
-        groupMemberRepository.save(GroupMember.builder().group(groupHouse).user(hung).role(GroupRole.OWNER).build());
-        groupMemberRepository.save(GroupMember.builder().group(groupHouse).user(khanh).role(GroupRole.MEMBER).build());
-
-        // 5. Seed Invitations
-        groupInvitationRepository.save(GroupInvitation.builder()
-                .group(groupDaLat).inviter(hung).invitee(binh)
-                .status(InvitationStatus.ACCEPTED).token("tok_abc123")
-                .message("Đi Đà Lạt cùng bọn mình nhé!")
-                .expiresAt(LocalDateTime.of(2026, 7, 30, 0, 0))
-                .build());
-
-        // 6. Seed Sample Expense
-        Expense expHotel = expenseRepository.save(Expense.builder()
-                .group(groupDaLat).currency(vnd)
-                .description("Đặt phòng khách sạn 2 đêm")
-                .totalAmount(new BigDecimal("2400000.00"))
-                .expenseDate(LocalDate.of(2026, 8, 1))
-                .build());
-
-        expensePayerRepository.save(ExpensePayer.builder().expense(expHotel).user(hung).amount(new BigDecimal("2400000.00")).build());
-
-        for (User member : List.of(hung, khanh, an, binh)) {
-            expenseShareRepository.save(ExpenseShare.builder().expense(expHotel).user(member).amount(new BigDecimal("600000.00")).build());
-        }
-
-        // 7. Seed Activity Log
-        activityRepository.save(Activity.builder()
-                .user(hung).entityType("GROUP").entityId(groupDaLat.getId())
-                .topic("Tạo nhóm").description("hungtri đã tạo nhóm 'Chuyến đi Đà Lạt'")
-                .build());
-
-        log.info("===============================================================================");
-        log.info("SUCCESS: Java DevDataSeeder finished populating sample data!");
-        log.info("Sample logins: [hungtri, khanhnt, anle, binhpham, adminuser] / password: 123456");
-        log.info("===============================================================================");
-    }
 }

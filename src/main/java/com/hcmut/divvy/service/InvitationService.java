@@ -20,4 +20,8 @@ public interface InvitationService {
     InvitationStatusResponse declineInvitation(DeclineInvitationModel model);
 
     InvitationStatusResponse revokeInvitation(RevokeInvitationModel model);
+
+    InvitationResponse getInvitationByToken(String token);
+
+    AcceptInvitationResponse acceptInvitationByToken(String token, String currentUsername);
 }

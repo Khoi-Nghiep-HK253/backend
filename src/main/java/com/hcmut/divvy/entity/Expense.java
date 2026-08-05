@@ -12,7 +12,8 @@ import com.hcmut.divvy.entity.enums.SplitType;
 
 @Entity
 @Table(name = "expenses", indexes = {
-    @Index(name = "idx_expenses_group_id", columnList = "group_id")
+    @Index(name = "idx_expenses_group_id", columnList = "group_id"),
+    @Index(name = "idx_expenses_created_by", columnList = "created_by")
 })
 @Getter
 @Setter
@@ -32,6 +33,11 @@ public class Expense extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "currency_id", nullable = false)
     private Currency currency;
+
+    /** The user who created this expense. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by")
+    private User createdBy;
 
     @Column(nullable = false, length = 255)
     private String description;

@@ -21,6 +21,7 @@ public class ExpenseResponse {
     private CurrencyResponse currency;
     private LocalDate expenseDate;
     private SplitType splitType;
+    private String createdByName;
     private List<ExpensePayerResponse> payers;
     private List<ExpenseShareResponse> shares;
     private List<DebtCreatedResponse> debtsCreated;

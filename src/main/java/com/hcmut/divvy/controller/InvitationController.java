@@ -113,4 +113,34 @@ public class InvitationController {
         InvitationStatusResponse response = invitationService.revokeInvitation(model);
         return ResponseEntity.ok(ApiResponse.ok(response, "Invitation revoked successfully"));
     }
+
+    /**
+     * Get invitation details by invitation token.
+     *
+     * @param token invitation token
+     * @return {@code 200 OK} with InvitationResponse
+     */
+    @GetMapping("/by-token")
+    @Operation(summary = "Get invitation details by token")
+    public ResponseEntity<ApiResponse<InvitationResponse>> getInvitationByToken(
+            @RequestParam String token) {
+        InvitationResponse response = invitationService.getInvitationByToken(token);
+        return ResponseEntity.ok(ApiResponse.ok(response, "Invitation details retrieved successfully"));
+    }
+
+    /**
+     * Accept a group invitation using the invitation token.
+     *
+     * @param token          invitation token
+     * @param authentication the currently authenticated user
+     * @return {@code 200 OK} with AcceptInvitationResponse
+     */
+    @PutMapping("/accept-by-token")
+    @Operation(summary = "Accept an invitation using invitation token")
+    public ResponseEntity<ApiResponse<AcceptInvitationResponse>> acceptInvitationByToken(
+            @RequestParam String token,
+            Authentication authentication) {
+        AcceptInvitationResponse response = invitationService.acceptInvitationByToken(token, authentication.getName());
+        return ResponseEntity.ok(ApiResponse.ok(response, "Invitation accepted successfully"));
+    }
 }

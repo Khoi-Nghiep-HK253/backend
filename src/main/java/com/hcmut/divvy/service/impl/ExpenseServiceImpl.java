@@ -83,7 +83,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         SplitType splitType = model.getSplitType() != null ? model.getSplitType() : SplitType.EQUAL;
 
-        Expense expense = expenseMapper.toEntity(model, group, currency, splitType);
+        Expense expense = expenseMapper.toEntity(model, group, currency, splitType, caller);
 
         Expense savedExpense = expenseRepository.save(expense);
 
@@ -128,9 +128,13 @@ public class ExpenseServiceImpl implements ExpenseService {
         Page<Expense> expensePage = expenseRepository.findAll(spec, model.getPageable());
 
         return expensePage.map(expense -> {
-            int payerCount = expensePayerRepository.findByExpenseId(expense.getId()).size();
+            List<ExpensePayer> payers = expensePayerRepository.findByExpenseId(expense.getId());
+            int payerCount = payers.size();
             int shareCount = expenseShareRepository.findByExpenseId(expense.getId()).size();
-            return expenseMapper.toSummaryResponse(expense, payerCount, shareCount);
+            String createdByName = expense.getCreatedBy() != null
+                    ? expense.getCreatedBy().getUsername()
+                    : (!payers.isEmpty() ? payers.get(0).getUser().getUsername() : null);
+            return expenseMapper.toSummaryResponse(expense, payerCount, shareCount, createdByName);
         });
     }
 

@@ -158,6 +158,47 @@ public class InvitationServiceImpl implements InvitationService {
         return invitationMapper.toStatusResponse(updatedInvitation);
     }
 
+    @Override
+    @Transactional
+    public InvitationResponse getInvitationByToken(String token) {
+        GroupInvitation invitation = groupInvitationRepository.findByToken(token)
+                .orElseThrow(() -> new ResourceNotFoundException("GroupInvitation", "token", token));
+
+        if (invitation.getStatus() == InvitationStatus.PENDING
+                && invitation.getExpiresAt() != null
+                && invitation.getExpiresAt().isBefore(LocalDateTime.now())) {
+            invitation.setStatus(InvitationStatus.EXPIRED);
+            groupInvitationRepository.save(invitation);
+        }
+
+        return invitationMapper.toResponse(invitation);
+    }
+
+    @Override
+    @Transactional
+    public AcceptInvitationResponse acceptInvitationByToken(String token, String currentUsername) {
+        User caller = findUserByUsername(currentUsername);
+        GroupInvitation invitation = groupInvitationRepository.findByToken(token)
+                .orElseThrow(() -> new ResourceNotFoundException("GroupInvitation", "token", token));
+
+        if (invitation.getExpiresAt() != null && invitation.getExpiresAt().isBefore(LocalDateTime.now())) {
+            invitation.setStatus(InvitationStatus.EXPIRED);
+            groupInvitationRepository.save(invitation);
+            throw new BusinessException("Invitation has expired.", HttpStatus.BAD_REQUEST);
+        }
+
+        invitationValidator.validateAcceptInvitation(invitation, caller);
+
+        // Update invitation status
+        invitation.setStatus(InvitationStatus.ACCEPTED);
+        GroupInvitation updatedInvitation = groupInvitationRepository.save(invitation);
+
+        // Automatically add user to group as MEMBER
+        groupMemberRepository.save(groupMemberMapper.toEntity(invitation.getGroup(), caller, GroupRole.MEMBER));
+
+        return invitationMapper.toAcceptResponse(updatedInvitation);
+    }
+
     private User findUserByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));

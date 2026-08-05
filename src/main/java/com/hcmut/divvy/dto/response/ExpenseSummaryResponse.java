@@ -20,4 +20,5 @@ public class ExpenseSummaryResponse {
     private SplitType splitType;
     private Integer payerCount;
     private Integer shareCount;
+    private String createdByName;
 }
