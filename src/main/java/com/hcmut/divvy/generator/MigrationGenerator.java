@@ -23,16 +23,16 @@ import java.util.*;
  * into a Flyway timestamped migration file (VYYYYMMDDHHMMSS__name.sql).
  *
  * Usage via Gradle:
- *   .\gradlew migrateDev -Pname=create_core_tables
- *   .\gradlew migrateDev -Pname=add_user_avatar
+ * .\gradlew migrateDev -Pname=create_core_tables
+ * .\gradlew migrateDev -Pname=add_user_avatar
  */
 public class MigrationGenerator {
 
     private static final String MIGRATION_DIR = "src/main/resources/db/migration";
-    private static final String ENTITY_DIR    = "src/main/java/com/hcmut/divvy/entity";
-    private static final String BASE_PACKAGE  = "com.hcmut.divvy.entity.";
+    private static final String ENTITY_DIR = "src/main/java/com/hcmut/divvy/entity";
+    private static final String BASE_PACKAGE = "com.hcmut.divvy.entity.";
 
-    private static final String DB_URL  = System.getProperty("db.url", "jdbc:postgresql://localhost:5432/divvy");
+    private static final String DB_URL = System.getProperty("db.url", "jdbc:postgresql://localhost:5432/divvy");
     private static final String DB_USER = System.getProperty("db.user", "postgres");
     private static final String DB_PASS = System.getProperty("db.pass", "123456");
 
@@ -76,8 +76,10 @@ public class MigrationGenerator {
         settings.put("hibernate.connection.url", DB_URL);
         settings.put("hibernate.connection.username", DB_USER);
         settings.put("hibernate.connection.password", DB_PASS);
-        settings.put("hibernate.physical_naming_strategy", "org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy");
-        settings.put("hibernate.implicit_naming_strategy", "org.hibernate.boot.model.naming.ImplicitNamingStrategyJpaCompliantImpl");
+        settings.put("hibernate.physical_naming_strategy",
+                "org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy");
+        settings.put("hibernate.implicit_naming_strategy",
+                "org.hibernate.boot.model.naming.ImplicitNamingStrategyJpaCompliantImpl");
 
         // JPA Schema Generation properties to generate DDL script for diff update
         settings.put("jakarta.persistence.schema-generation.database.action", "none");
@@ -107,7 +109,8 @@ public class MigrationGenerator {
             StandardServiceRegistryBuilder.destroy(registry);
         }
 
-        // 3. Read generated DDL script and write to Flyway migration file if changes exist
+        // 3. Read generated DDL script and write to Flyway migration file if changes
+        // exist
         try {
             List<String> rawLines = tempFile.exists() ? Files.readAllLines(tempFile.toPath()) : Collections.emptyList();
             tempFile.delete();

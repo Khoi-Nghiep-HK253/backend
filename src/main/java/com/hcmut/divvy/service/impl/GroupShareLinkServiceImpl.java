@@ -20,6 +20,7 @@ import com.hcmut.divvy.repository.UserRepository;
 import com.hcmut.divvy.service.GroupShareLinkService;
 import com.hcmut.divvy.service.model.CreateShareLinkModel;
 import com.hcmut.divvy.service.model.GetGroupPreviewModel;
+import com.hcmut.divvy.service.model.GetGroupShareLinksModel;
 import com.hcmut.divvy.service.model.JoinViaLinkModel;
 import com.hcmut.divvy.service.model.RevokeShareLinkModel;
 import lombok.RequiredArgsConstructor;
@@ -77,12 +78,12 @@ public class GroupShareLinkServiceImpl implements GroupShareLinkService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ShareLinkResponse> getGroupShareLinks(Integer groupId, String currentUsername) {
-        User caller = findUserByUsername(currentUsername);
-        groupMemberRepository.findByGroupIdAndUserId(groupId, caller.getId())
+    public List<ShareLinkResponse> getGroupShareLinks(GetGroupShareLinksModel model) {
+        User caller = findUserByUsername(model.getCurrentUsername());
+        groupMemberRepository.findByGroupIdAndUserId(model.getGroupId(), caller.getId())
                 .orElseThrow(() -> new BusinessException("You are not a member of this group.", HttpStatus.FORBIDDEN));
 
-        List<GroupShareLink> links = shareLinkRepository.findByGroupId(groupId);
+        List<GroupShareLink> links = shareLinkRepository.findByGroupId(model.getGroupId());
         return links.stream().map(shareLinkMapper::toShareLinkResponse).toList();
     }
 

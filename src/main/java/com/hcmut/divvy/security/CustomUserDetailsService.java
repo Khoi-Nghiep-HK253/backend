@@ -21,7 +21,8 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(usernameOrEmail)
                 .orElseGet(() -> userRepository.findByEmail(usernameOrEmail)
-                        .orElseThrow(() -> new UsernameNotFoundException("User not found with username or email: " + usernameOrEmail)));
+                        .orElseThrow(() -> new UsernameNotFoundException(
+                                "User not found with username or email: " + usernameOrEmail)));
 
         String roleStr = user.getRole() != null ? user.getRole().name() : "USER";
         String roleName = roleStr.startsWith("ROLE_") ? roleStr : "ROLE_" + roleStr;
@@ -29,7 +30,6 @@ public class CustomUserDetailsService implements UserDetailsService {
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getHashPassword(),
-                Collections.singletonList(new SimpleGrantedAuthority(roleName))
-        );
+                Collections.singletonList(new SimpleGrantedAuthority(roleName)));
     }
 }

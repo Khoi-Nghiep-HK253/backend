@@ -13,7 +13,6 @@ public interface PasswordResetTokenRepository extends JpaRepository<PasswordRese
 
     Optional<PasswordResetToken> findByToken(String token);
 
-    /** Invalidate all existing unused tokens for a user before issuing a new one. */
     @Modifying
     @Query("UPDATE PasswordResetToken t SET t.used = true WHERE t.user.id = :userId AND t.used = false")
     void invalidateAllByUserId(Integer userId);

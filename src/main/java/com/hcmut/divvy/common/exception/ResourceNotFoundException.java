@@ -7,10 +7,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * Thrown when a requested resource cannot be found.
  * Maps to HTTP 404 Not Found.
  *
- * <p>Usage example:
+ * <p>
+ * Usage example:
+ * 
  * <pre>
- *   catRepository.findById(id)
- *       .orElseThrow(() -> new ResourceNotFoundException("Cat", "id", id));
+ * catRepository.findById(id)
+ *         .orElseThrow(() -> new ResourceNotFoundException("Cat", "id", id));
  * </pre>
  */
 @ResponseStatus(HttpStatus.NOT_FOUND)

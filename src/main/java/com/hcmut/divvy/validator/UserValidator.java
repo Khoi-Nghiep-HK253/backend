@@ -31,7 +31,8 @@ public class UserValidator {
         validateChangePassword(model.getOldPassword(), model.getNewPassword(), user, passwordEncoder);
     }
 
-    public void validateChangePassword(String oldPassword, String newPassword, User user, PasswordEncoder passwordEncoder) {
+    public void validateChangePassword(String oldPassword, String newPassword, User user,
+            PasswordEncoder passwordEncoder) {
         if (!passwordEncoder.matches(oldPassword, user.getHashPassword())) {
             throw new BusinessException("Current password is incorrect.", HttpStatus.BAD_REQUEST);
         }
@@ -55,7 +56,8 @@ public class UserValidator {
     }
 
     /**
-     * Ensures the user with the given ID exists in the pre-fetched user map and returns the entity.
+     * Ensures the user with the given ID exists in the pre-fetched user map and
+     * returns the entity.
      *
      * @param userMap Map of user ID to User entity
      * @param userId  The target user ID

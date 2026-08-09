@@ -20,7 +20,8 @@ public interface InvitationMapper {
     @Mapping(target = "usernameOrEmail", ignore = true)
     SendInvitationModel toModel(SendInvitationRequest request, Integer groupId, String currentUsername);
 
-    default GetGroupInvitationsModel toGetGroupInvitationsModel(Integer groupId, InvitationStatus status, String currentUsername) {
+    default GetGroupInvitationsModel toGetGroupInvitationsModel(Integer groupId, InvitationStatus status,
+            String currentUsername) {
         return GetGroupInvitationsModel.builder()
                 .groupId(groupId)
                 .status(status)
@@ -74,7 +75,8 @@ public interface InvitationMapper {
     InvitationResponse toResponse(GroupInvitation invitation);
 
     default InvitationResponse.GroupInfo toGroupInfo(Group group) {
-        if (group == null) return null;
+        if (group == null)
+            return null;
         return InvitationResponse.GroupInfo.builder()
                 .id(group.getId())
                 .name(group.getName())
@@ -82,7 +84,8 @@ public interface InvitationMapper {
     }
 
     default InvitationResponse.UserInfo toUserInfo(User user) {
-        if (user == null) return null;
+        if (user == null)
+            return null;
         return InvitationResponse.UserInfo.builder()
                 .id(user.getId())
                 .username(user.getUsername())
@@ -92,7 +95,8 @@ public interface InvitationMapper {
     }
 
     default AcceptInvitationResponse toAcceptResponse(GroupInvitation invitation) {
-        if (invitation == null) return null;
+        if (invitation == null)
+            return null;
         return AcceptInvitationResponse.builder()
                 .invitationId(invitation.getId())
                 .status(invitation.getStatus())
@@ -104,7 +108,8 @@ public interface InvitationMapper {
     }
 
     default InvitationStatusResponse toStatusResponse(GroupInvitation invitation) {
-        if (invitation == null) return null;
+        if (invitation == null)
+            return null;
         return InvitationStatusResponse.builder()
                 .invitationId(invitation.getId())
                 .status(invitation.getStatus())

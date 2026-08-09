@@ -39,7 +39,8 @@ public class GroupInvitationController {
      * @param request        invitation payload (inviteeId, message, expiresAt)
      * @param authentication the currently authenticated user (must be OWNER)
      * @return {@code 201 Created} with InvitationResponse;
-     *         {@code 400} if the invitee is already a member or already has a pending invitation;
+     *         {@code 400} if the invitee is already a member or already has a
+     *         pending invitation;
      *         {@code 403} if the caller is not the OWNER
      */
     @PostMapping
@@ -59,7 +60,8 @@ public class GroupInvitationController {
      * <p>
      * Requires the {@code OWNER} role.
      * Results may be filtered by invitation status
-     * ({@code PENDING}, {@code ACCEPTED}, {@code DECLINED}, {@code REVOKED}, {@code EXPIRED}).
+     * ({@code PENDING}, {@code ACCEPTED}, {@code DECLINED}, {@code REVOKED},
+     * {@code EXPIRED}).
      *
      * @param groupId        the group's ID
      * @param status         optional status filter
@@ -73,7 +75,8 @@ public class GroupInvitationController {
             @PathVariable Integer groupId,
             @RequestParam(required = false) InvitationStatus status,
             Authentication authentication) {
-        GetGroupInvitationsModel model = invitationMapper.toGetGroupInvitationsModel(groupId, status, authentication.getName());
+        GetGroupInvitationsModel model = invitationMapper.toGetGroupInvitationsModel(groupId, status,
+                authentication.getName());
         List<InvitationResponse> responses = invitationService.getGroupInvitations(model);
         return ResponseEntity.ok(ApiResponse.ok(responses, "Invitations retrieved successfully"));
     }

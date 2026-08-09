@@ -26,11 +26,14 @@ public class PasswordResetValidator {
         }
     }
 
-    public void validateResetPasswordRequest(ResetPasswordModel model, PasswordResetToken resetToken, User user, PasswordEncoder passwordEncoder) {
-        validateResetPasswordRequest(model.getToken(), model.getNewPassword(), model.getConfirmPassword(), resetToken, user, passwordEncoder);
+    public void validateResetPasswordRequest(ResetPasswordModel model, PasswordResetToken resetToken, User user,
+            PasswordEncoder passwordEncoder) {
+        validateResetPasswordRequest(model.getToken(), model.getNewPassword(), model.getConfirmPassword(), resetToken,
+                user, passwordEncoder);
     }
 
-    public void validateResetPasswordRequest(String token, String newPassword, String confirmPassword, PasswordResetToken resetToken, User user, PasswordEncoder passwordEncoder) {
+    public void validateResetPasswordRequest(String token, String newPassword, String confirmPassword,
+            PasswordResetToken resetToken, User user, PasswordEncoder passwordEncoder) {
         if (!newPassword.equals(confirmPassword)) {
             throw new BusinessException("New password and confirm password do not match.");
         }

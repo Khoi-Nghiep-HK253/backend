@@ -56,11 +56,13 @@ public class CategoryController {
      * Create a new category.
      *
      * @param request the category creation request payload (name, icon)
-     * @return {@code 201 Created} with CategoryResponse; {@code 409} if category name already exists
+     * @return {@code 201 Created} with CategoryResponse; {@code 409} if category
+     *         name already exists
      */
     @PostMapping
     @Operation(summary = "Create a new category", description = "Creates a new category with a unique name and optional icon")
-    public ResponseEntity<ApiResponse<CategoryResponse>> createCategory(@Valid @RequestBody CreateCategoryRequest request) {
+    public ResponseEntity<ApiResponse<CategoryResponse>> createCategory(
+            @Valid @RequestBody CreateCategoryRequest request) {
         CreateCategoryModel model = categoryMapper.toModel(request);
         CategoryResponse created = categoryService.create(model);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -73,7 +75,8 @@ public class CategoryController {
      * @param id      the ID of the category to update
      * @param request the fields to update (name, icon)
      * @return {@code 200 OK} with the updated CategoryResponse;
-     *         {@code 404} if category not found; {@code 409} if the new name already exists
+     *         {@code 404} if category not found; {@code 409} if the new name
+     *         already exists
      */
     @PutMapping("/{id}")
     @Operation(summary = "Update a category", description = "Updates an existing category's name or icon")

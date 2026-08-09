@@ -56,11 +56,13 @@ public class CurrencyController {
      * Create a new currency.
      *
      * @param request the currency creation request payload (name, acronym)
-     * @return {@code 201 Created} with CurrencyResponse; {@code 409} if acronym already exists
+     * @return {@code 201 Created} with CurrencyResponse; {@code 409} if acronym
+     *         already exists
      */
     @PostMapping
     @Operation(summary = "Create a new currency", description = "Creates a new currency with a unique acronym and name")
-    public ResponseEntity<ApiResponse<CurrencyResponse>> createCurrency(@Valid @RequestBody CreateCurrencyRequest request) {
+    public ResponseEntity<ApiResponse<CurrencyResponse>> createCurrency(
+            @Valid @RequestBody CreateCurrencyRequest request) {
         CreateCurrencyModel model = currencyMapper.toModel(request);
         CurrencyResponse created = currencyService.create(model);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -73,7 +75,8 @@ public class CurrencyController {
      * @param id      the ID of the currency to update
      * @param request the fields to update (name, acronym)
      * @return {@code 200 OK} with the updated CurrencyResponse;
-     *         {@code 404} if currency not found; {@code 409} if the acronym is already taken
+     *         {@code 404} if currency not found; {@code 409} if the acronym is
+     *         already taken
      */
     @PutMapping("/{id}")
     @Operation(summary = "Update a currency", description = "Updates an existing currency's name or acronym")

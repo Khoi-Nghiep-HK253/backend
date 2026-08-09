@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "group_share_links", indexes = {
-    @Index(name = "idx_group_share_links_group_id", columnList = "group_id"),
-    @Index(name = "idx_group_share_links_created_by", columnList = "created_by")
+        @Index(name = "idx_group_share_links_group_id", columnList = "group_id"),
+        @Index(name = "idx_group_share_links_created_by", columnList = "created_by")
 })
 @Getter
 @Setter

@@ -8,6 +8,7 @@ import com.hcmut.divvy.mapper.GroupShareLinkMapper;
 import com.hcmut.divvy.service.GroupShareLinkService;
 import com.hcmut.divvy.service.model.CreateShareLinkModel;
 import com.hcmut.divvy.service.model.GetGroupPreviewModel;
+import com.hcmut.divvy.service.model.GetGroupShareLinksModel;
 import com.hcmut.divvy.service.model.JoinViaLinkModel;
 import com.hcmut.divvy.service.model.RevokeShareLinkModel;
 import io.swagger.v3.oas.annotations.Operation;
@@ -45,7 +46,8 @@ public class GroupShareLinkController {
     public ResponseEntity<ApiResponse<List<ShareLinkResponse>>> getGroupShareLinks(
             @PathVariable Integer groupId,
             Authentication authentication) {
-        List<ShareLinkResponse> responses = shareLinkService.getGroupShareLinks(groupId, authentication.getName());
+        GetGroupShareLinksModel model = shareLinkMapper.toGetGroupShareLinksModel(groupId, authentication.getName());
+        List<ShareLinkResponse> responses = shareLinkService.getGroupShareLinks(model);
         return ResponseEntity.ok(ApiResponse.ok(responses, "Retrieved group share links successfully"));
     }
 
@@ -64,7 +66,7 @@ public class GroupShareLinkController {
     @Operation(summary = "Get group preview info via share invite code (Public Endpoint)")
     public ResponseEntity<ApiResponse<GroupPreviewResponse>> getGroupPreview(
             @PathVariable String inviteCode) {
-        GetGroupPreviewModel model = GetGroupPreviewModel.builder().inviteCode(inviteCode).build();
+        GetGroupPreviewModel model = shareLinkMapper.toGetGroupPreviewModel(inviteCode);
         GroupPreviewResponse response = shareLinkService.getGroupPreview(model);
         return ResponseEntity.ok(ApiResponse.ok(response, "Retrieved group preview successfully"));
     }
@@ -74,10 +76,7 @@ public class GroupShareLinkController {
     public ResponseEntity<ApiResponse<ShareLinkResponse>> joinGroupViaLink(
             @PathVariable String inviteCode,
             Authentication authentication) {
-        JoinViaLinkModel model = JoinViaLinkModel.builder()
-                .inviteCode(inviteCode)
-                .currentUsername(authentication.getName())
-                .build();
+        JoinViaLinkModel model = shareLinkMapper.toJoinViaLinkModel(inviteCode, authentication.getName());
         ShareLinkResponse response = shareLinkService.joinGroupViaLink(model);
         return ResponseEntity.ok(ApiResponse.ok(response, "Joined group successfully via share link"));
     }

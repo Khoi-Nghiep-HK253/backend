@@ -6,6 +6,9 @@ import com.hcmut.divvy.dto.response.ShareLinkResponse;
 import com.hcmut.divvy.entity.Group;
 import com.hcmut.divvy.entity.GroupShareLink;
 import com.hcmut.divvy.service.model.CreateShareLinkModel;
+import com.hcmut.divvy.service.model.GetGroupPreviewModel;
+import com.hcmut.divvy.service.model.GetGroupShareLinksModel;
+import com.hcmut.divvy.service.model.JoinViaLinkModel;
 import com.hcmut.divvy.service.model.RevokeShareLinkModel;
 import org.mapstruct.Mapper;
 
@@ -21,10 +24,30 @@ public interface GroupShareLinkMapper {
                 .build();
     }
 
+    default GetGroupShareLinksModel toGetGroupShareLinksModel(Integer groupId, String currentUsername) {
+        return GetGroupShareLinksModel.builder()
+                .groupId(groupId)
+                .currentUsername(currentUsername)
+                .build();
+    }
+
     default RevokeShareLinkModel toRevokeShareLinkModel(Integer groupId, Integer linkId, String currentUsername) {
         return RevokeShareLinkModel.builder()
                 .groupId(groupId)
                 .linkId(linkId)
+                .currentUsername(currentUsername)
+                .build();
+    }
+
+    default GetGroupPreviewModel toGetGroupPreviewModel(String inviteCode) {
+        return GetGroupPreviewModel.builder()
+                .inviteCode(inviteCode)
+                .build();
+    }
+
+    default JoinViaLinkModel toJoinViaLinkModel(String inviteCode, String currentUsername) {
+        return JoinViaLinkModel.builder()
+                .inviteCode(inviteCode)
                 .currentUsername(currentUsername)
                 .build();
     }

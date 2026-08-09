@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "group_invitations", indexes = {
-    @Index(name = "idx_group_invitations_group", columnList = "group_id"),
-    @Index(name = "idx_group_invitations_invitee", columnList = "invitee_id")
+        @Index(name = "idx_group_invitations_group", columnList = "group_id"),
+        @Index(name = "idx_group_invitations_invitee", columnList = "invitee_id")
 })
 @Getter
 @Setter
@@ -50,4 +50,3 @@ public class GroupInvitation extends BaseEntity {
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;
 }
-

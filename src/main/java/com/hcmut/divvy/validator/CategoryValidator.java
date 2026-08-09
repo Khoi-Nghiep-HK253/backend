@@ -12,7 +12,8 @@ import java.util.Optional;
 public class CategoryValidator {
 
     /**
-     * Ensures the category exists, returning the Category entity or throwing ResourceNotFoundException.
+     * Ensures the category exists, returning the Category entity or throwing
+     * ResourceNotFoundException.
      *
      * @param categoryOpt pre-fetched Optional<Category> from repository
      * @param categoryId  target category ID

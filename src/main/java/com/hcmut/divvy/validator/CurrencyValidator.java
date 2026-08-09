@@ -12,7 +12,8 @@ import java.util.Optional;
 public class CurrencyValidator {
 
     /**
-     * Ensures the currency exists, returning the Currency entity or throwing ResourceNotFoundException.
+     * Ensures the currency exists, returning the Currency entity or throwing
+     * ResourceNotFoundException.
      *
      * @param currencyOpt pre-fetched Optional<Currency> from repository
      * @param currencyId  target currency ID

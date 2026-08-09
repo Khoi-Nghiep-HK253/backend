@@ -10,8 +10,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface GroupRepository extends JpaRepository<Group, Integer> {
-
-    /** Returns all groups where the given user is a member (any role). */
     @Query("SELECT g FROM Group g JOIN GroupMember gm ON gm.group = g WHERE gm.user.id = :userId")
     Page<Group> findAllByMemberId(@Param("userId") Integer userId, Pageable pageable);
 }

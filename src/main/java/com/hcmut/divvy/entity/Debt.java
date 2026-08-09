@@ -10,9 +10,9 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(name = "debts", indexes = {
-    @Index(name = "idx_debts_expense_id", columnList = "expense_id"),
-    @Index(name = "idx_debts_from_user", columnList = "from_user_id"),
-    @Index(name = "idx_debts_to_user", columnList = "to_user_id")
+        @Index(name = "idx_debts_expense_id", columnList = "expense_id"),
+        @Index(name = "idx_debts_from_user", columnList = "from_user_id"),
+        @Index(name = "idx_debts_to_user", columnList = "to_user_id")
 })
 @Getter
 @Setter
@@ -45,4 +45,3 @@ public class Debt extends BaseEntity {
     @Builder.Default
     private DebtStatus status = DebtStatus.PENDING;
 }
-

@@ -52,6 +52,9 @@ dependencies {
 
     // ── Swagger / OpenAPI ──────────────────────────────────────────────────────
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5'
+
+    // ── Cloudinary CDN ─────────────────────────────────────────────────────────
+    implementation 'com.cloudinary:cloudinary-http44:1.39.0'
 }
 
 tasks.named('test') {

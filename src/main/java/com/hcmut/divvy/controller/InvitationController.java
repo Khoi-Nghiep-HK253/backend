@@ -29,7 +29,8 @@ public class InvitationController {
     /**
      * Retrieve the invitation inbox of the currently authenticated user.
      * <p>
-     * Defaults to returning only {@code PENDING} invitations when no {@code status} is provided.
+     * Defaults to returning only {@code PENDING} invitations when no {@code status}
+     * is provided.
      *
      * @param status         optional status filter (defaults to PENDING)
      * @param authentication the currently authenticated user
@@ -50,11 +51,13 @@ public class InvitationController {
      * <p>
      * Only the designated invitee may accept.
      * The invitation must be in the {@code PENDING} state and must not be expired.
-     * Upon acceptance, the user is automatically added to the group with the {@code MEMBER} role.
+     * Upon acceptance, the user is automatically added to the group with the
+     * {@code MEMBER} role.
      *
      * @param invitationId   the ID of the invitation to accept
      * @param authentication the currently authenticated user (must be the invitee)
-     * @return {@code 200 OK} with AcceptInvitationResponse (invitation + membership);
+     * @return {@code 200 OK} with AcceptInvitationResponse (invitation +
+     *         membership);
      *         {@code 400} if the invitation has expired or is no longer pending;
      *         {@code 403} if the caller is not the invitee
      */
@@ -86,7 +89,8 @@ public class InvitationController {
     public ResponseEntity<ApiResponse<InvitationStatusResponse>> declineInvitation(
             @PathVariable Integer invitationId,
             Authentication authentication) {
-        DeclineInvitationModel model = invitationMapper.toDeclineInvitationModel(invitationId, authentication.getName());
+        DeclineInvitationModel model = invitationMapper.toDeclineInvitationModel(invitationId,
+                authentication.getName());
         InvitationStatusResponse response = invitationService.declineInvitation(model);
         return ResponseEntity.ok(ApiResponse.ok(response, "Invitation declined successfully"));
     }
@@ -99,7 +103,8 @@ public class InvitationController {
      * On success, the invitation status transitions to {@code REVOKED}.
      *
      * @param invitationId   the ID of the invitation to revoke
-     * @param authentication the currently authenticated user (must be the group OWNER)
+     * @param authentication the currently authenticated user (must be the group
+     *                       OWNER)
      * @return {@code 200 OK} with InvitationStatusResponse {status: "REVOKED"};
      *         {@code 400} if the invitation is no longer pending;
      *         {@code 403} if the caller is not the OWNER

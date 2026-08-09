@@ -14,7 +14,8 @@ import java.time.LocalDateTime;
 @Component
 public class InvitationValidator {
 
-    public void validateSendInvitation(GroupMember inviterMember, boolean isAlreadyMember, boolean hasPendingInvitation) {
+    public void validateSendInvitation(GroupMember inviterMember, boolean isAlreadyMember,
+            boolean hasPendingInvitation) {
         // Must be group OWNER
         if (inviterMember == null || GroupRole.OWNER != inviterMember.getRole()) {
             throw new BusinessException("Only group admins can perform this action.", HttpStatus.FORBIDDEN);

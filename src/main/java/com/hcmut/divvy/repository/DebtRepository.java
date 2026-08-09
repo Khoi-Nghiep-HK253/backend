@@ -11,8 +11,12 @@ import java.util.List;
 @Repository
 public interface DebtRepository extends JpaRepository<Debt, Integer>, JpaSpecificationExecutor<Debt> {
     List<Debt> findByExpenseId(Integer expenseId);
+
     void deleteByExpenseId(Integer expenseId);
+
     boolean existsByExpenseIdAndStatusNot(Integer expenseId, DebtStatus status);
+
     List<Debt> findByExpenseGroupId(Integer groupId);
+
     List<Debt> findByExpenseGroupIdAndStatus(Integer groupId, DebtStatus status);
 }

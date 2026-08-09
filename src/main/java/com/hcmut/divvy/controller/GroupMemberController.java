@@ -35,7 +35,8 @@ public class GroupMemberController {
      * @param groupId        the group's ID
      * @param authentication the currently authenticated user
      * @return {@code 200 OK} with a list of GroupMemberResponse;
-     *         {@code 403} if the caller is not a member; {@code 404} if the group does not exist
+     *         {@code 403} if the caller is not a member; {@code 404} if the group
+     *         does not exist
      */
     @GetMapping
     @Operation(summary = "Get list of all members in a group")
@@ -58,7 +59,8 @@ public class GroupMemberController {
      * @param request        the payload containing the target user's ID
      * @param authentication the currently authenticated user (must be OWNER)
      * @return {@code 201 Created} with GroupMemberResponse;
-     *         {@code 400} if the user is already a member; {@code 403} if the caller is not the OWNER
+     *         {@code 400} if the user is already a member; {@code 403} if the
+     *         caller is not the OWNER
      */
     @PostMapping
     @Operation(summary = "Add a new member to group (Requires OWNER role)")
@@ -104,9 +106,9 @@ public class GroupMemberController {
      * <p>
      * Authorization rules:
      * <ul>
-     *   <li>Any member may remove themselves (leave).</li>
-     *   <li>Only an {@code OWNER} may remove other members.</li>
-     *   <li>The sole {@code OWNER} cannot be removed.</li>
+     * <li>Any member may remove themselves (leave).</li>
+     * <li>Only an {@code OWNER} may remove other members.</li>
+     * <li>The sole {@code OWNER} cannot be removed.</li>
      * </ul>
      *
      * @param groupId        the group's ID

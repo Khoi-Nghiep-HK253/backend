@@ -6,9 +6,11 @@ import org.springframework.http.HttpStatus;
 /**
  * General-purpose business logic exception with configurable HTTP status.
  *
- * <p>Usage example:
+ * <p>
+ * Usage example:
+ * 
  * <pre>
- *   throw new BusinessException("Cat name already exists", HttpStatus.CONFLICT);
+ * throw new BusinessException("Cat name already exists", HttpStatus.CONFLICT);
  * </pre>
  */
 @Getter

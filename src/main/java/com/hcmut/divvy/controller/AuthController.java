@@ -36,7 +36,8 @@ public class AuthController {
      * with BCrypt, saves the User with the default role {@code USER}, then returns
      * a JWT token together with the user profile.
      *
-     * @param request registration payload (username, email, password, firstname, lastname, phone)
+     * @param request registration payload (username, email, password, firstname,
+     *                lastname, phone)
      * @return {@code 201 Created} with AuthResponse (accessToken, tokenType, user)
      */
     @PostMapping("/register")
@@ -51,8 +52,10 @@ public class AuthController {
     /**
      * Authenticate and obtain a JWT token.
      * <p>
-     * Delegates credential verification to Spring Security's {@code AuthenticationManager}.
-     * The {@code usernameOrEmail} field accepts both a username and an email address.
+     * Delegates credential verification to Spring Security's
+     * {@code AuthenticationManager}.
+     * The {@code usernameOrEmail} field accepts both a username and an email
+     * address.
      *
      * @param request login payload (usernameOrEmail, password)
      * @return {@code 200 OK} with AuthResponse (accessToken, tokenType, user)
@@ -68,7 +71,8 @@ public class AuthController {
     /**
      * Retrieve the profile of the currently authenticated user.
      * <p>
-     * The username is extracted from the JWT stored in {@code SecurityContextHolder}.
+     * The username is extracted from the JWT stored in
+     * {@code SecurityContextHolder}.
      *
      * @param authentication Spring Security authentication context
      * @return {@code 200 OK} with the current user's UserResponse
@@ -86,8 +90,10 @@ public class AuthController {
      * Request a password-reset link to be sent via email.
      * <p>
      * Looks up the user by email. If not found, returns {@code 200 OK} without
-     * disclosing whether the email is registered (prevents user-enumeration attacks).
-     * If found, invalidates all previous reset tokens, generates a new time-limited token,
+     * disclosing whether the email is registered (prevents user-enumeration
+     * attacks).
+     * If found, invalidates all previous reset tokens, generates a new time-limited
+     * token,
      * and sends an email containing the reset link.
      *
      * @param request payload containing the email address
@@ -105,7 +111,8 @@ public class AuthController {
     /**
      * Verify the validity of a password-reset token.
      * <p>
-     * Checks that the token exists, has not been used ({@code used=false}), and has not expired.
+     * Checks that the token exists, has not been used ({@code used=false}), and has
+     * not expired.
      * Returns a masked email address and the token's expiry time.
      *
      * @param token the reset token received from the email link

@@ -12,8 +12,8 @@ import com.hcmut.divvy.entity.enums.SplitType;
 
 @Entity
 @Table(name = "expenses", indexes = {
-    @Index(name = "idx_expenses_group_id", columnList = "group_id"),
-    @Index(name = "idx_expenses_created_by", columnList = "created_by")
+        @Index(name = "idx_expenses_group_id", columnList = "group_id"),
+        @Index(name = "idx_expenses_created_by", columnList = "created_by")
 })
 @Getter
 @Setter

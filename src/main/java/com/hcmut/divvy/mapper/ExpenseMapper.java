@@ -24,9 +24,11 @@ public interface ExpenseMapper {
     @Mapping(target = "groupId", source = "groupId")
     @Mapping(target = "expenseId", source = "expenseId")
     @Mapping(target = "currentUsername", source = "currentUsername")
-    UpdateExpenseModel toModel(UpdateExpenseRequest request, Integer groupId, Integer expenseId, String currentUsername);
+    UpdateExpenseModel toModel(UpdateExpenseRequest request, Integer groupId, Integer expenseId,
+            String currentUsername);
 
-    default GetGroupExpensesModel toGetGroupExpensesModel(Integer groupId, String currentUsername, LocalDate fromDate, LocalDate toDate, Pageable pageable) {
+    default GetGroupExpensesModel toGetGroupExpensesModel(Integer groupId, String currentUsername, LocalDate fromDate,
+            LocalDate toDate, Pageable pageable) {
         return GetGroupExpensesModel.builder()
                 .groupId(groupId)
                 .currentUsername(currentUsername)
@@ -104,7 +106,8 @@ public interface ExpenseMapper {
     Debt toDebt(Expense expense, User fromUser, User toUser, BigDecimal amount, DebtStatus status);
 
     default ExpensePayerResponse toPayerResponse(ExpensePayer payer) {
-        if (payer == null) return null;
+        if (payer == null)
+            return null;
         return ExpensePayerResponse.builder()
                 .userId(payer.getUser().getId())
                 .username(payer.getUser().getUsername())
@@ -113,7 +116,8 @@ public interface ExpenseMapper {
     }
 
     default ExpenseShareResponse toShareResponse(ExpenseShare share) {
-        if (share == null) return null;
+        if (share == null)
+            return null;
         return ExpenseShareResponse.builder()
                 .userId(share.getUser().getId())
                 .username(share.getUser().getUsername())
@@ -122,7 +126,8 @@ public interface ExpenseMapper {
     }
 
     default DebtCreatedResponse toDebtResponse(Debt debt) {
-        if (debt == null) return null;
+        if (debt == null)
+            return null;
         return DebtCreatedResponse.builder()
                 .id(debt.getId())
                 .fromUserId(debt.getFromUser().getId())
@@ -134,8 +139,10 @@ public interface ExpenseMapper {
                 .build();
     }
 
-    default ExpenseSummaryResponse toSummaryResponse(Expense expense, int payerCount, int shareCount, String createdByName) {
-        if (expense == null) return null;
+    default ExpenseSummaryResponse toSummaryResponse(Expense expense, int payerCount, int shareCount,
+            String createdByName) {
+        if (expense == null)
+            return null;
         return ExpenseSummaryResponse.builder()
                 .id(expense.getId())
                 .description(expense.getDescription())
@@ -149,8 +156,10 @@ public interface ExpenseMapper {
                 .build();
     }
 
-    default ExpenseResponse toExpenseResponse(Expense expense, List<ExpensePayer> payers, List<ExpenseShare> shares, List<Debt> debts) {
-        if (expense == null) return null;
+    default ExpenseResponse toExpenseResponse(Expense expense, List<ExpensePayer> payers, List<ExpenseShare> shares,
+            List<Debt> debts) {
+        if (expense == null)
+            return null;
         String createdByName = expense.getCreatedBy() != null ? expense.getCreatedBy().getUsername() : null;
         return ExpenseResponse.builder()
                 .id(expense.getId())
@@ -170,7 +179,8 @@ public interface ExpenseMapper {
     }
 
     default GroupResponse toGroupResponse(Group group) {
-        if (group == null) return null;
+        if (group == null)
+            return null;
         return GroupResponse.builder()
                 .id(group.getId())
                 .name(group.getName())
@@ -178,7 +188,8 @@ public interface ExpenseMapper {
     }
 
     default CurrencyResponse toCurrencyResponse(Currency currency) {
-        if (currency == null) return null;
+        if (currency == null)
+            return null;
         return CurrencyResponse.builder()
                 .id(currency.getId())
                 .code(currency.getAcronym())

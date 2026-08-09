@@ -12,7 +12,8 @@ import javax.sql.DataSource;
 import java.util.Arrays;
 
 /**
- * Ensures Flyway runs migrations BEFORE Hibernate initializes/validates the database schema.
+ * Ensures Flyway runs migrations BEFORE Hibernate initializes/validates the
+ * database schema.
  */
 @Configuration
 public class FlywayConfig implements BeanFactoryPostProcessor {

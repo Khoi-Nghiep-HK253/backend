@@ -9,5 +9,6 @@ import java.util.List;
 @Repository
 public interface ExpenseShareRepository extends JpaRepository<ExpenseShare, Integer> {
     List<ExpenseShare> findByExpenseId(Integer expenseId);
+
     void deleteByExpenseId(Integer expenseId);
 }

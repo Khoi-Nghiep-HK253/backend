@@ -28,7 +28,8 @@ public interface GroupMemberMapper {
     @Mapping(target = "groupId", source = "groupId")
     @Mapping(target = "memberId", source = "memberId")
     @Mapping(target = "currentUsername", source = "currentUsername")
-    UpdateMemberRoleModel toModel(UpdateMemberRoleRequest request, Integer groupId, Integer memberId, String currentUsername);
+    UpdateMemberRoleModel toModel(UpdateMemberRoleRequest request, Integer groupId, Integer memberId,
+            String currentUsername);
 
     default RemoveMemberModel toRemoveMemberModel(Integer groupId, Integer memberId, String currentUsername) {
         return RemoveMemberModel.builder()
@@ -51,7 +52,8 @@ public interface GroupMemberMapper {
     GroupMember toEntity(Group group, User user, GroupRole role);
 
     default GroupMemberResponse.UserInfo toUserInfo(User user) {
-        if (user == null) return null;
+        if (user == null)
+            return null;
         return GroupMemberResponse.UserInfo.builder()
                 .id(user.getId())
                 .username(user.getUsername())

@@ -15,7 +15,8 @@ import java.time.LocalDateTime;
 
 /**
  * Base entity providing automatic audit fields (createdAt, updatedAt).
- * All JPA entities should extend this class instead of managing timestamps manually.
+ * All JPA entities should extend this class instead of managing timestamps
+ * manually.
  *
  * Uses {@code @SuperBuilder} so subclasses with {@code @Builder} can include
  * these inherited fields in their generated builders.

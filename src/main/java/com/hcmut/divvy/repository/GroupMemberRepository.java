@@ -19,7 +19,5 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Intege
 
     long countByGroupId(Integer groupId);
 
-    /** Counts how many members in a group have the given role (e.g. to detect last ADMIN). */
     long countByGroupIdAndRole(Integer groupId, GroupRole role);
 }
-

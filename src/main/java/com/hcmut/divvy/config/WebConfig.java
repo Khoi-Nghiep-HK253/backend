@@ -8,7 +8,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * Global web configuration.
  * Centralizes CORS policy so controllers stay free of CORS annotations.
  *
- * <p>In production, replace {@code allowedOrigins("*")} with explicit domain(s).
+ * <p>
+ * In production, replace {@code allowedOrigins("*")} with explicit domain(s).
  */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {

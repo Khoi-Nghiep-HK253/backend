@@ -59,11 +59,13 @@ public class UserController {
     /**
      * Create a new user account (admin endpoint).
      * <p>
-     * Validates that the username and email are not already taken before persisting.
+     * Validates that the username and email are not already taken before
+     * persisting.
      * The password is encoded with BCrypt.
      *
      * @param request the new user's information
-     * @return {@code 201 Created} with UserResponse; {@code 409} if username or email already exists
+     * @return {@code 201 Created} with UserResponse; {@code 409} if username or
+     *         email already exists
      */
     @PostMapping
     @Operation(summary = "Create a new user (Admin endpoint)")
@@ -78,7 +80,8 @@ public class UserController {
      * Update the profile information of a user.
      * <p>
      * Only the account owner is permitted to update their own profile.
-     * Fields that are {@code null} in the request are left unchanged (partial update).
+     * Fields that are {@code null} in the request are left unchanged (partial
+     * update).
      *
      * @param id             the ID of the user to update
      * @param request        the fields to update (firstname, lastname, phone)
@@ -108,7 +111,8 @@ public class UserController {
      * @param request        the password change payload (oldPassword, newPassword)
      * @param authentication the currently authenticated user
      * @return {@code 200 OK};
-     *         {@code 400} if the old password is wrong or the new password is the same;
+     *         {@code 400} if the old password is wrong or the new password is the
+     *         same;
      *         {@code 403} if the caller is not the owner
      */
     @PatchMapping("/{id}/password")

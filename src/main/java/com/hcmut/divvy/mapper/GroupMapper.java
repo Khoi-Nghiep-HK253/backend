@@ -69,7 +69,8 @@ public interface GroupMapper {
     GroupResponse toResponse(Group group);
 
     default GroupResponse.CategoryInfo toCategoryInfo(Category category) {
-        if (category == null) return null;
+        if (category == null)
+            return null;
         return GroupResponse.CategoryInfo.builder()
                 .id(category.getId())
                 .name(category.getName())
@@ -77,7 +78,8 @@ public interface GroupMapper {
     }
 
     default GroupResponse.UserInfo toUserInfo(User user) {
-        if (user == null) return null;
+        if (user == null)
+            return null;
         return GroupResponse.UserInfo.builder()
                 .id(user.getId())
                 .username(user.getUsername())

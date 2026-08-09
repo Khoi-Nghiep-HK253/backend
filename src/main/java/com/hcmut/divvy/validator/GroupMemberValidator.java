@@ -52,7 +52,8 @@ public class GroupMemberValidator {
     /**
      * Validates member removal rules (authorization check & last OWNER protection).
      */
-    public void validateRemoveMember(GroupMember targetMember, Integer callerUserId, boolean isCallerAdmin, long ownerCount) {
+    public void validateRemoveMember(GroupMember targetMember, Integer callerUserId, boolean isCallerAdmin,
+            long ownerCount) {
         boolean isSelf = targetMember.getUser().getId().equals(callerUserId);
         if (!isSelf && !isCallerAdmin) {
             throw new BusinessException("You are not authorized to remove this member.", HttpStatus.FORBIDDEN);

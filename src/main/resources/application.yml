@@ -41,3 +41,16 @@ app:
   mail:
     from: ${APP_MAIL_FROM:no-reply@divvy.app}
     enabled: ${APP_MAIL_ENABLED:true}
+
+# ── Cloudinary CDN ────────────────────────────────────────────────────────────
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}
+
+# ── Multipart Upload Limits ───────────────────────────────────────────────────
+spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 12MB

@@ -19,7 +19,8 @@ public interface AuthMapper {
     ResetPasswordModel toModel(ResetPasswordRequest request);
 
     default VerifyResetTokenModel toVerifyTokenModel(String token) {
-        if (token == null) return null;
+        if (token == null)
+            return null;
         return VerifyResetTokenModel.builder().token(token).build();
     }
 }

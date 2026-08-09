@@ -10,7 +10,6 @@ import java.util.Optional;
 
 @Repository
 public interface GroupInvitationRepository extends JpaRepository<GroupInvitation, Integer> {
-
     boolean existsByGroupIdAndInviteeIdAndStatus(Integer groupId, Integer inviteeId, InvitationStatus status);
 
     List<GroupInvitation> findAllByGroupId(Integer groupId);

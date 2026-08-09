@@ -34,7 +34,8 @@ public class SettlementValidator {
         }
 
         if (!debt.getFromUser().getId().equals(callerUserId) && !debt.getToUser().getId().equals(callerUserId)) {
-            throw new BusinessException("You are not authorized to record settlement for this debt.", HttpStatus.FORBIDDEN);
+            throw new BusinessException("You are not authorized to record settlement for this debt.",
+                    HttpStatus.FORBIDDEN);
         }
 
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
@@ -42,7 +43,9 @@ public class SettlementValidator {
         }
 
         if (amount.compareTo(debt.getAmount()) > 0) {
-            throw new BusinessException("Settlement amount (" + amount + ") exceeds remaining debt amount (" + debt.getAmount() + ").", HttpStatus.BAD_REQUEST);
+            throw new BusinessException(
+                    "Settlement amount (" + amount + ") exceeds remaining debt amount (" + debt.getAmount() + ").",
+                    HttpStatus.BAD_REQUEST);
         }
     }
 }
