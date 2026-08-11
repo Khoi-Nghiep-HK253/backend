@@ -30,10 +30,7 @@ COPY --from=builder /app/build/libs/*.jar app.jar
 EXPOSE 8080
 
 # Environment variables defaults (can be overridden at runtime)
-ENV SPRING_PROFILES_ACTIVE=dev
-ENV SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/divvy
-ENV SPRING_DATASOURCE_USERNAME=postgres
-ENV SPRING_DATASOURCE_PASSWORD=123456
+ENV SPRING_PROFILES_ACTIVE=prod
 
 # Command to run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
