@@ -1,5 +1,6 @@
 package com.hcmut.divvy.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -9,17 +10,22 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * Centralizes CORS policy so controllers stay free of CORS annotations.
  *
  * <p>
- * In production, replace {@code allowedOrigins("*")} with explicit domain(s).
+ * Configure allowed origins via the {@code CORS_ALLOWED_ORIGINS} environment variable
+ * (comma-separated list). Defaults to {@code *} for local development.
  */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+    @Value("${cors.allowed-origins:*}")
+    private String[] allowedOrigins;
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/api/**")
-                .allowedOrigins("*")
+        registry.addMapping("/**")
+                .allowedOrigins(allowedOrigins)
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
+                .exposedHeaders("Authorization")
                 .maxAge(3600);
     }
 }
