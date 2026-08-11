@@ -19,4 +19,8 @@ public interface DebtRepository extends JpaRepository<Debt, Integer>, JpaSpecifi
     List<Debt> findByExpenseGroupId(Integer groupId);
 
     List<Debt> findByExpenseGroupIdAndStatus(Integer groupId, DebtStatus status);
+
+    List<Debt> findByFromUserIdAndStatus(Integer fromUserId, DebtStatus status);
+
+    List<Debt> findByToUserIdAndStatus(Integer toUserId, DebtStatus status);
 }

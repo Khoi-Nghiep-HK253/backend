@@ -10,5 +10,9 @@ import java.util.List;
 public interface ExpensePayerRepository extends JpaRepository<ExpensePayer, Integer> {
     List<ExpensePayer> findByExpenseId(Integer expenseId);
 
+    List<ExpensePayer> findByUserId(Integer userId);
+
+    List<ExpensePayer> findByExpenseGroupId(Integer groupId);
+
     void deleteByExpenseId(Integer expenseId);
 }
