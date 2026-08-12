@@ -10,12 +10,25 @@ import java.util.List;
 @Repository
 public interface MediaAttachmentRepository extends JpaRepository<MediaAttachment, Integer> {
 
-    /** Finds all attachments associated with the given entity type and entity ID. */
+    /**
+     * Finds all attachments associated with the given entity type and entity ID,
+     * ordered by creation date ascending so that the latest created/updated is
+     * last.
+     */
+    List<MediaAttachment> findByEntityTypeAndEntityIdOrderByCreatedAtAscIdAsc(MediaEntityType entityType,
+            Integer entityId);
+
     List<MediaAttachment> findByEntityTypeAndEntityId(MediaEntityType entityType, Integer entityId);
 
     /** Checks if any attachment exists for the given entity. */
     boolean existsByEntityTypeAndEntityId(MediaEntityType entityType, Integer entityId);
 
-    /** Deletes all attachments associated with the given entity (e.g. when deleting an Expense). */
+    /**
+     * Deletes all attachments associated with the given entity (e.g. when deleting
+     * an Expense).
+     */
     void deleteAllByEntityTypeAndEntityId(MediaEntityType entityType, Integer entityId);
+
+    /** Counts how many attachments use the given Cloudinary public_id. */
+    long countByPublicId(String publicId);
 }

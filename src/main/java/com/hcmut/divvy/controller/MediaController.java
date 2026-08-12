@@ -7,6 +7,7 @@ import com.hcmut.divvy.mapper.MediaMapper;
 import com.hcmut.divvy.service.MediaAttachmentService;
 import com.hcmut.divvy.service.model.DeleteMediaModel;
 import com.hcmut.divvy.service.model.GetAttachmentsModel;
+import com.hcmut.divvy.service.model.SelectMediaModel;
 import com.hcmut.divvy.service.model.UploadMediaModel;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -112,5 +113,23 @@ public class MediaController {
         mediaAttachmentService.delete(model);
 
         return ResponseEntity.ok(ApiResponse.ok(null, "Attachment deleted successfully"));
+    }
+
+    /**
+     * Select a previously uploaded media attachment to make it active for an
+     * entity.
+     *
+     * @param id the ID of the attachment to select
+     * @return 200 OK with the new active attachment metadata
+     */
+    @PostMapping("/{id}/select")
+    @Operation(summary = "Select a previously uploaded media attachment as active")
+    public ResponseEntity<ApiResponse<MediaAttachmentResponse>> select(
+            @PathVariable Integer id,
+            Authentication authentication) {
+
+        SelectMediaModel model = mediaMapper.toSelectModel(id, authentication.getName());
+        MediaAttachmentResponse response = mediaAttachmentService.selectMedia(model);
+        return ResponseEntity.ok(ApiResponse.ok(response, "Attachment selected successfully"));
     }
 }

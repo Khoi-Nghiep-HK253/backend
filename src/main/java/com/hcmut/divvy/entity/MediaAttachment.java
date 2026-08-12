@@ -82,6 +82,6 @@ public class MediaAttachment {
     private User uploader;
 
     @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 }

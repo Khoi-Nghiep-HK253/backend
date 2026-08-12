@@ -3,6 +3,7 @@ package com.hcmut.divvy.service;
 import com.hcmut.divvy.dto.response.MediaAttachmentResponse;
 import com.hcmut.divvy.service.model.DeleteMediaModel;
 import com.hcmut.divvy.service.model.GetAttachmentsModel;
+import com.hcmut.divvy.service.model.SelectMediaModel;
 import com.hcmut.divvy.service.model.UploadMediaModel;
 
 import java.util.List;
@@ -34,4 +35,15 @@ public interface MediaAttachmentService {
      *              ownership check)
      */
     void delete(DeleteMediaModel model);
+
+    /**
+     * Selects a previously uploaded media attachment to make it active for an
+     * entity.
+     * Creates a new attachment record referencing the same file/public_id with the
+     * current timestamp.
+     *
+     * @param model contains the attachment id and the requester's username
+     * @return the newly saved active attachment response
+     */
+    MediaAttachmentResponse selectMedia(SelectMediaModel model);
 }

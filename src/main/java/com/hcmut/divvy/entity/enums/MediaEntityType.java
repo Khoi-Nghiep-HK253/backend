@@ -20,5 +20,6 @@ public enum MediaEntityType {
     SETTLEMENT,
     USER_AVATAR,
     GROUP_AVATAR,
-    GROUP_COVER
+    GROUP_COVER,
+    USER_COVER
 }
