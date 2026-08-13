@@ -6,8 +6,8 @@
 
 BEGIN;
 
--- 1. Seed Reference Currencies
-INSERT INTO currencies (id, acronym, name, created_at, updated_at) VALUES
+-- 1. Seed Reference currency
+INSERT INTO currency (id, acronym, name, created_at, updated_at) VALUES
 (1, 'VND', 'Vietnamese Dong', NOW(), NOW()),
 (2, 'USD', 'US Dollar', NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
@@ -76,7 +76,7 @@ INSERT INTO activities (id, user_id, entity_type, entity_id, topic, description,
 ON CONFLICT (id) DO NOTHING;
 
 -- Update PostgreSQL ID Sequence values to prevent Primary Key collisions on new inserts
-SELECT setval('currencies_id_seq', (SELECT MAX(id) FROM currencies));
+SELECT setval('currency_id_seq', (SELECT MAX(id) FROM currency));
 SELECT setval('categories_id_seq', (SELECT MAX(id) FROM categories));
 SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
 SELECT setval('groups_id_seq', (SELECT MAX(id) FROM groups));
