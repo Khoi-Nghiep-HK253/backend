@@ -38,12 +38,11 @@ jwt:
   secret: ${JWT_SECRET}
   expiration-ms: 86400000
 
-# ── Password Reset ────────────────────────────────────────────────────────────
+# ── Application Config ────────────────────────────────────────────────────────
 app:
+  base-url: ${APP_BASE_URL:http://localhost:3000}
   reset-password:
     expiry-minutes: 30
-    # Override in profile-specific YML or env var for production frontend URL
-    base-url: ${APP_RESET_PASSWORD_BASE_URL:http://localhost:3000/reset-password}
   mail:
     from: ${APP_MAIL_FROM:no-reply@divvy.app}
     enabled: ${APP_MAIL_ENABLED:true}

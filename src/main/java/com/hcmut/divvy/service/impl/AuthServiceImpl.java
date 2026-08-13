@@ -8,6 +8,7 @@ import com.hcmut.divvy.entity.PasswordResetToken;
 import com.hcmut.divvy.entity.User;
 import com.hcmut.divvy.helper.StringHelper;
 import com.hcmut.divvy.helper.TokenHelper;
+import com.hcmut.divvy.mapper.AuthMapper;
 import com.hcmut.divvy.mapper.UserMapper;
 import com.hcmut.divvy.repository.PasswordResetTokenRepository;
 import com.hcmut.divvy.repository.UserRepository;
@@ -37,6 +38,7 @@ public class AuthServiceImpl implements AuthService {
 
         private final UserRepository userRepository;
         private final UserMapper userMapper;
+        private final AuthMapper authMapper;
         private final UserValidator userValidator;
         private final PasswordResetValidator passwordResetValidator;
         private final PasswordEncoder passwordEncoder;
@@ -45,11 +47,11 @@ public class AuthServiceImpl implements AuthService {
         private final PasswordResetTokenRepository passwordResetTokenRepository;
         private final EmailService emailService;
 
+        @Value("${app.base-url:http://localhost:3000}")
+        private String baseUrl;
+
         @Value("${app.reset-password.expiry-minutes:30}")
         private int resetTokenExpiryMinutes;
-
-        @Value("${app.reset-password.base-url:http://localhost:3000/reset-password}")
-        private String resetPasswordBaseUrl;
 
         @Override
         @Transactional
@@ -64,11 +66,14 @@ public class AuthServiceImpl implements AuthService {
                 User saved = userRepository.save(user);
                 String token = tokenProvider.generateToken(saved.getUsername());
 
-                return AuthResponse.builder()
-                                .accessToken(token)
-                                .tokenType("Bearer")
-                                .user(userMapper.toResponse(saved))
-                                .build();
+                try {
+                        String welcomeLink = baseUrl + "/welcome";
+                        emailService.sendWelcomeEmail(saved.getEmail(), saved.getUsername(), welcomeLink);
+                } catch (Exception e) {
+                        log.error("Failed to trigger welcome email for user {}", saved.getUsername(), e);
+                }
+
+                return authMapper.toAuthResponse(token, userMapper.toResponse(saved));
         }
 
         @Override
@@ -84,11 +89,7 @@ public class AuthServiceImpl implements AuthService {
 
                 String token = tokenProvider.generateToken(user.getUsername());
 
-                return AuthResponse.builder()
-                                .accessToken(token)
-                                .tokenType("Bearer")
-                                .user(userMapper.toResponse(user))
-                                .build();
+                return authMapper.toAuthResponse(token, userMapper.toResponse(user));
         }
 
         @Override
@@ -114,16 +115,15 @@ public class AuthServiceImpl implements AuthService {
                 passwordResetTokenRepository.invalidateAllByUserId(user.getId());
 
                 String rawToken = TokenHelper.generateToken();
-                PasswordResetToken resetToken = PasswordResetToken.builder()
-                                .user(user)
-                                .token(rawToken)
-                                .expiresAt(LocalDateTime.now().plusMinutes(resetTokenExpiryMinutes))
-                                .used(false)
-                                .build();
+                PasswordResetToken resetToken = authMapper.toPasswordResetToken(
+                                user,
+                                rawToken,
+                                LocalDateTime.now().plusMinutes(resetTokenExpiryMinutes),
+                                false);
 
                 passwordResetTokenRepository.save(resetToken);
 
-                String resetLink = resetPasswordBaseUrl + "?token=" + rawToken;
+                String resetLink = baseUrl + "/reset-password?token=" + rawToken;
                 emailService.sendPasswordResetEmail(user.getEmail(), resetLink);
 
                 log.info("Password reset token generated for user id={}", user.getId());
@@ -136,10 +136,7 @@ public class AuthServiceImpl implements AuthService {
                 passwordResetValidator.validateToken(resetToken);
 
                 String maskedEmail = StringHelper.maskEmail(resetToken.getUser().getEmail());
-                return VerifyTokenResponse.builder()
-                                .email(maskedEmail)
-                                .expiresAt(resetToken.getExpiresAt())
-                                .build();
+                return authMapper.toVerifyTokenResponse(maskedEmail, resetToken.getExpiresAt());
         }
 
         @Override

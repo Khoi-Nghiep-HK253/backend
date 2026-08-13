@@ -46,7 +46,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/api/invitations/by-token",
-                                "/api/groups/join-via-link/preview/**",
+                                "/api/groups/join-via-link/preview/**"
+                                , "/api/surveys/**",
                                 "/actuator/**",
                                 "/error",
                                 "/swagger-ui/**",

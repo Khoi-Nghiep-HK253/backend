@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Divvy</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 0;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            background-color: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            padding: 36px 30px;
+            text-align: center;
+            color: #ffffff;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            margin: 8px 0 0;
+            opacity: 0.92;
+            font-size: 15px;
+        }
+
+        .content {
+            padding: 32px 30px;
+        }
+
+        .greeting {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 16px;
+        }
+
+        .intro-text {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #475569;
+            margin-bottom: 24px;
+        }
+
+        .feature-box {
+            background-color: #ecfdf5;
+            border-left: 4px solid #10b981;
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 28px;
+        }
+
+        .feature-item {
+            font-size: 14px;
+            color: #047857;
+            margin: 8px 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-wrapper {
+            text-align: center;
+            margin: 32px 0;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: #10b981;
+            color: #ffffff !important;
+            font-size: 16px;
+            font-weight: 700;
+            text-decoration: none;
+            padding: 14px 36px;
+            border-radius: 10px;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+        }
+
+        .footer {
+            background-color: #f8fafc;
+            padding: 20px 30px;
+            text-align: center;
+            font-size: 13px;
+            color: #94a3b8;
+            border-top: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Welcome to Divvy!</h1>
+            <p>Smart Expense Ledger for Friends & Families</p>
+        </div>
+        <div class="content">
+            <div class="greeting">Hi {{username}},</div>
+            <div class="intro-text">
+                Thank you for creating an account with <strong>Divvy</strong>. We are thrilled to help you and your
+                friends manage group expenses transparently, automatically, and effortlessly!
+            </div>
+
+            <div class="feature-box">
+                <div class="feature-item">✨ Automatically calculate & settle debts between members</div>
+                <div class="feature-item">💡 Split group expenses in under 30 seconds</div>
+                <div class="feature-item">🎉 Say goodbye to math confusion and awkward debt reminders</div>
+            </div>
+
+            <div class="intro-text">
+                Take a minute to click the button below to get started and complete a quick survey to help us serve you
+                better:
+            </div>
+
+            <div class="btn-wrapper">
+                <a href="{{welcomeLink}}" target="_blank" class="btn">Explore Divvy & Get Started ➔</a>
+            </div>
+        </div>
+        <div class="footer">
+            © 2026 Divvy App. If you have any questions, feel free to contact us at support@divvy.app.<br>
+            You received this email because you signed up for an account at Divvy.
+        </div>
+    </div>
+</body>
+
+</html>

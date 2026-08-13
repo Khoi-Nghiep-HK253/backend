@@ -22,4 +22,6 @@ public interface EmailService {
      */
     void sendGroupInvitationEmail(String toEmail, String inviterName, String groupName, String inviteLink,
             String message);
+
+    void sendWelcomeEmail(String toEmail, String username, String welcomeLink);
 }

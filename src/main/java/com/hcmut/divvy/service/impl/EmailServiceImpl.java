@@ -37,6 +37,9 @@ public class EmailServiceImpl implements EmailService {
     @Value("classpath:templates/email/personal-message.html")
     private Resource personalMessageTemplateResource;
 
+    @Value("classpath:templates/email/welcome.html")
+    private Resource welcomeTemplateResource;
+
     @Override
     @Async
     public void sendPasswordResetEmail(String toEmail, String resetLink) {
@@ -67,7 +70,8 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     @Async
-    public void sendGroupInvitationEmail(String toEmail, String inviterName, String groupName, String inviteLink, String personalMessage) {
+    public void sendGroupInvitationEmail(String toEmail, String inviterName, String groupName, String inviteLink,
+            String personalMessage) {
         if (!mailEnabled) {
             log.warn("========================================================");
             log.warn("[DEV MODE] Group invitation email for {}:", toEmail);
@@ -104,7 +108,8 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
-    private String buildInvitationEmailBody(String inviterName, String groupName, String inviteLink, String personalMessage) {
+    private String buildInvitationEmailBody(String inviterName, String groupName, String inviteLink,
+            String personalMessage) {
         try {
             String messageSection = "";
             if (personalMessage != null && !personalMessage.isBlank()) {
@@ -116,6 +121,45 @@ public class EmailServiceImpl implements EmailService {
             return template.formatted(inviterName, groupName, messageSection, inviteLink, inviteLink);
         } catch (IOException e) {
             log.error("Failed to read group invitation email template", e);
+            throw new RuntimeException("Could not load email template", e);
+        }
+    }
+
+    @Override
+    @Async
+    public void sendWelcomeEmail(String toEmail, String username, String welcomeLink) {
+        if (!mailEnabled) {
+            log.warn("========================================================");
+            log.warn("[DEV MODE] Welcome email for {}:", toEmail);
+            log.warn("  Username: {}", username);
+            log.warn("  Welcome Link: {}", welcomeLink);
+            log.warn("========================================================");
+            return;
+        }
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromAddress);
+            helper.setTo(toEmail);
+            helper.setSubject("[Divvy] Welcome to Divvy!");
+            helper.setText(buildWelcomeEmailBody(username, welcomeLink), true);
+
+            mailSender.send(message);
+            log.info("Welcome email sent to {}", toEmail);
+
+        } catch (MessagingException e) {
+            log.error("Failed to send welcome email to {}: {}", toEmail, e.getMessage());
+        }
+    }
+
+    private String buildWelcomeEmailBody(String username, String welcomeLink) {
+        try {
+            String template = welcomeTemplateResource.getContentAsString(StandardCharsets.UTF_8);
+            return template.replace("{{username}}", username != null ? username : "").replace("{{welcomeLink}}", welcomeLink != null ? welcomeLink : "");
+        } catch (IOException e) {
+            log.error("Failed to read welcome email template", e);
             throw new RuntimeException("Could not load email template", e);
         }
     }
