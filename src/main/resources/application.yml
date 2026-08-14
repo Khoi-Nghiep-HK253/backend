@@ -22,21 +22,6 @@ spring:
       max-file-size: 10MB
       max-request-size: 12MB
 
-  # ── Mail Configuration (SSL Port 465 Default for Cloud Compatibility) ───────
-  mail:
-    host: ${SPRING_MAIL_HOST:smtp.gmail.com}
-    port: ${SPRING_MAIL_PORT:465}
-    username: ${SPRING_MAIL_USERNAME:}
-    password: ${SPRING_MAIL_PASSWORD:}
-    properties:
-      mail.smtp.auth: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH:true}
-      mail.smtp.ssl.enable: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_SSL_ENABLE:true}
-      mail.smtp.starttls.enable: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE:false}
-      mail.smtp.starttls.required: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_REQUIRED:false}
-      mail.smtp.connectiontimeout: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_CONNECTIONTIMEOUT:10000}
-      mail.smtp.timeout: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_TIMEOUT:10000}
-      mail.smtp.writetimeout: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_WRITETIMEOUT:10000}
-
 server:
   port: 8080
 
@@ -59,7 +44,9 @@ app:
   reset-password:
     expiry-minutes: 30
   mail:
-    from: ${APP_MAIL_FROM:no-reply@divvy.app}
+    resend-api-url: ${RESEND_API_URL:https://api.resend.com/emails}
+    resend-api-key: ${RESEND_API_KEY:}
+    from: ${APP_MAIL_FROM:onboarding@resend.dev}
     enabled: ${APP_MAIL_ENABLED:true}
 
 # ── Cloudinary CDN ────────────────────────────────────────────────────────────

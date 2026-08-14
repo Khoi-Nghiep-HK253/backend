@@ -44,10 +44,12 @@ public class SecurityConfig {
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/health",
+                                "/api/health",
                                 "/api/auth/**",
                                 "/api/invitations/by-token",
-                                "/api/groups/join-via-link/preview/**"
-                                , "/api/surveys/**",
+                                "/api/groups/join-via-link/preview/**",
+                                "/api/surveys/**",
                                 "/actuator/**",
                                 "/error",
                                 "/swagger-ui/**",
