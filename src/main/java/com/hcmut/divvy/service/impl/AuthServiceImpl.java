@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -148,12 +149,15 @@ public class AuthServiceImpl implements AuthService {
 
                 passwordResetValidator.validateResetPasswordRequest(model, resetToken, user, passwordEncoder);
 
-                user.setHashPassword(passwordEncoder.encode(model.getNewPassword()));
-                userRepository.save(user);
+                User validUser = Objects.requireNonNull(user);
+                PasswordResetToken validToken = Objects.requireNonNull(resetToken);
 
-                resetToken.setUsed(true);
-                passwordResetTokenRepository.save(resetToken);
+                validUser.setHashPassword(passwordEncoder.encode(model.getNewPassword()));
+                userRepository.save(validUser);
 
-                log.info("Password reset successfully for user id={}", user.getId());
+                validToken.setUsed(true);
+                passwordResetTokenRepository.save(validToken);
+
+                log.info("Password reset successfully for user id={}", validUser.getId());
         }
 }

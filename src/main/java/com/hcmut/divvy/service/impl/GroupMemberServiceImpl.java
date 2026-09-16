@@ -94,7 +94,7 @@ public class GroupMemberServiceImpl implements GroupMemberService {
                 .orElseThrow(() -> new ResourceNotFoundException("GroupMember", "id", model.getMemberId()));
 
         GroupMember callerMember = findMember(model.getGroupId(), caller.getId());
-        boolean isCallerAdmin = callerMember != null && GroupRole.OWNER == callerMember.getRole();
+        boolean isCallerAdmin = callerMember != null && callerMember.isOwner();
         long ownerCount = groupMemberRepository.countByGroupIdAndRole(targetMember.getGroup().getId(), GroupRole.OWNER);
 
         groupMemberValidator.validateRemoveMember(targetMember, caller.getId(), isCallerAdmin, ownerCount);

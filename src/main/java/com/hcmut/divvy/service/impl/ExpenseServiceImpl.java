@@ -13,7 +13,6 @@ import com.hcmut.divvy.entity.Group;
 import com.hcmut.divvy.entity.GroupMember;
 import com.hcmut.divvy.entity.User;
 import com.hcmut.divvy.entity.enums.DebtStatus;
-import com.hcmut.divvy.entity.enums.GroupRole;
 import com.hcmut.divvy.entity.enums.SplitType;
 import com.hcmut.divvy.mapper.ExpenseMapper;
 import com.hcmut.divvy.repository.*;
@@ -75,7 +74,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         List<GroupMember> groupMembers = groupMemberRepository.findAllByGroupId(group.getId());
         Map<Integer, User> userMap = groupMembers.stream()
-                .collect(Collectors.toMap(m -> m.getUser().getId(), GroupMember::getUser));
+                .collect(Collectors.toMap(m -> m.getUser().getId(), m -> m.getUser()));
 
         expenseValidator.validatePayers(model.getTotalAmount(), model.getPayers(), userMap.keySet());
         expenseValidator.validateShares(model.getSplitType(), model.getTotalAmount(), model.getShares(),
@@ -174,7 +173,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         Expense expense = expenseValidator.validateExpenseExists(expenseRepository.findById(model.getExpenseId()),
                 model.getExpenseId());
 
-        boolean isCallerAdmin = callerMember != null && GroupRole.OWNER == callerMember.getRole();
+        boolean isCallerAdmin = callerMember != null && callerMember.isOwner();
         expenseValidator.validateModificationAuth(expense, caller.getId(), isCallerAdmin);
 
         boolean hasSettled = debtRepository.existsByExpenseIdAndStatusNot(expense.getId(), DebtStatus.PENDING);
@@ -185,7 +184,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         List<GroupMember> groupMembers = groupMemberRepository.findAllByGroupId(group.getId());
         Map<Integer, User> userMap = groupMembers.stream()
-                .collect(Collectors.toMap(m -> m.getUser().getId(), GroupMember::getUser));
+                .collect(Collectors.toMap(m -> m.getUser().getId(), m -> m.getUser()));
 
         expenseValidator.validatePayers(model.getTotalAmount(), model.getPayers(), userMap.keySet());
         expenseValidator.validateShares(model.getSplitType(), model.getTotalAmount(), model.getShares(),
@@ -227,7 +226,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         Expense expense = expenseValidator.validateExpenseExists(expenseRepository.findById(model.getExpenseId()),
                 model.getExpenseId());
 
-        boolean isCallerAdmin = callerMember != null && GroupRole.OWNER == callerMember.getRole();
+        boolean isCallerAdmin = callerMember != null && callerMember.isOwner();
         expenseValidator.validateModificationAuth(expense, caller.getId(), isCallerAdmin);
 
         boolean hasSettled = debtRepository.existsByExpenseIdAndStatusNot(expense.getId(), DebtStatus.PENDING);

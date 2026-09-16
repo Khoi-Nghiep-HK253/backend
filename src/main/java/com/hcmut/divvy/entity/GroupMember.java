@@ -34,4 +34,8 @@ public class GroupMember extends BaseEntity {
     @Column(nullable = false, length = 20)
     @Builder.Default
     private GroupRole role = GroupRole.MEMBER;
+
+    public boolean isOwner() {
+        return GroupRole.OWNER == role;
+    }
 }

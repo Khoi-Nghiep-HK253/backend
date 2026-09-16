@@ -62,10 +62,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 }
 
                 // Fetch expenses belonging to candidate groups
-                List<Expense> allGroupExpenses = new ArrayList<>();
-                for (Integer gId : userGroupIds) {
-                        allGroupExpenses.addAll(expenseRepository.findByGroupId(gId));
-                }
+                List<Expense> allGroupExpenses = expenseRepository.findByGroupIdIn(userGroupIds);
 
                 // Apply Date Filtering
                 LocalDateTime start = model.getStartDate() != null ? model.getStartDate()
@@ -84,10 +81,10 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 // 1. Total Group Expense
                 BigDecimal totalGroupExpense = filteredExpenses.stream()
                                 .map(e -> e.getTotalAmount() != null ? e.getTotalAmount() : BigDecimal.ZERO)
-                                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                                .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
 
                 // 2. Personal Shares Calculation
-                Set<Integer> filteredExpenseIds = filteredExpenses.stream().map(Expense::getId)
+                Set<Integer> filteredExpenseIds = filteredExpenses.stream().map(e -> e.getId())
                                 .collect(Collectors.toSet());
                 List<ExpenseShare> userShares = expenseShareRepository.findByUserId(caller.getId()).stream()
                                 .filter(s -> filteredExpenseIds.contains(s.getExpense().getId()))
@@ -95,20 +92,20 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
                 BigDecimal totalPersonalShare = userShares.stream()
                                 .map(s -> s.getAmount() != null ? s.getAmount() : BigDecimal.ZERO)
-                                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                                .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
 
                 // 3. Debts (Owed To User & User Owes)
                 List<Debt> pendingOwedToUser = debtRepository.findByToUserIdAndStatus(caller.getId(),
                                 DebtStatus.PENDING);
                 BigDecimal totalOwedToUser = pendingOwedToUser.stream()
                                 .map(d -> d.getAmount() != null ? d.getAmount() : BigDecimal.ZERO)
-                                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                                .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
 
                 List<Debt> pendingUserOwes = debtRepository.findByFromUserIdAndStatus(caller.getId(),
                                 DebtStatus.PENDING);
                 BigDecimal totalUserOwes = pendingUserOwes.stream()
                                 .map(d -> d.getAmount() != null ? d.getAmount() : BigDecimal.ZERO)
-                                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                                .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
 
                 // 4. Category Stats Grouping
                 Map<Integer, CategoryExpenseStatResponse> catMap = new HashMap<>();
@@ -149,7 +146,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 String groupBy = model.getGroupBy() != null ? model.getGroupBy().toUpperCase() : "DAY";
                 Map<String, BigDecimal> timeMap = new LinkedHashMap<>();
 
-                filteredExpenses.sort(Comparator.comparing(Expense::getExpenseDate));
+                filteredExpenses.sort(Comparator.comparing(e -> e.getExpenseDate()));
                 for (Expense e : filteredExpenses) {
                         String label;
                         if ("MONTH".equals(groupBy)) {
@@ -161,7 +158,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                                 label = e.getExpenseDate().format(DateTimeFormatter.ofPattern("dd/MM"));
                         }
                         timeMap.merge(label, e.getTotalAmount() != null ? e.getTotalAmount() : BigDecimal.ZERO,
-                                        BigDecimal::add);
+                                        (a, b) -> a.add(b));
                 }
 
                 List<TimePeriodStatResponse> timeTrendStats = timeMap.entrySet().stream()
