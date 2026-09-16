@@ -21,13 +21,21 @@ public class GroupResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     public static class CategoryInfo {
         private Integer id;
         private String name;
     }
 
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     public static class UserInfo {
         private Integer id;
         private String username;

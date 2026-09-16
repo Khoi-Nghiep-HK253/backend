@@ -16,10 +16,5 @@ package com.hcmut.divvy.entity.enums;
  * </ul>
  */
 public enum MediaEntityType {
-    EXPENSE,
-    SETTLEMENT,
-    USER_AVATAR,
-    GROUP_AVATAR,
-    GROUP_COVER,
-    USER_COVER
+    EXPENSE, SETTLEMENT, USER_AVATAR, GROUP_AVATAR, GROUP_COVER, USER_COVER
 }

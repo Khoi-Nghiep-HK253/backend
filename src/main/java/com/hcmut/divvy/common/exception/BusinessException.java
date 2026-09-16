@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
  *
  * <p>
  * Usage example:
- * 
+ *
  * <pre>
  * throw new BusinessException("Cat name already exists", HttpStatus.CONFLICT);
  * </pre>

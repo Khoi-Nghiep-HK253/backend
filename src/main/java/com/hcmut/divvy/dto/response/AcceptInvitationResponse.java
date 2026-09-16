@@ -14,7 +14,11 @@ public class AcceptInvitationResponse {
     private InvitationStatus status;
     private JoinedGroupInfo joinedGroup;
 
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     public static class JoinedGroupInfo {
         private Integer id;
         private String name;

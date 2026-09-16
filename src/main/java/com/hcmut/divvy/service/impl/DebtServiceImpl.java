@@ -89,7 +89,9 @@ public class DebtServiceImpl implements DebtService {
 
         for (Debt debt : pendingDebts) {
             String key = debt.getFromUser().getId() + "_" + debt.getToUser().getId();
-            summaryMap.computeIfAbsent(key, k -> new DebtPairAggregate(debt.getFromUser(), debt.getToUser(), defaultCurrencyCode))
+            summaryMap
+                    .computeIfAbsent(key,
+                            k -> new DebtPairAggregate(debt.getFromUser(), debt.getToUser(), defaultCurrencyCode))
                     .addAmount(debt.getAmount());
         }
 

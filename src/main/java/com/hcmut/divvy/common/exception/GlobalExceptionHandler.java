@@ -49,7 +49,7 @@ public class GlobalExceptionHandler {
     // 401 — Authentication Exception (Wrong password / username / email)
     // -------------------------------------------------------------------------
 
-    @ExceptionHandler({ BadCredentialsException.class, AuthenticationException.class })
+    @ExceptionHandler({BadCredentialsException.class, AuthenticationException.class})
     public ResponseEntity<ErrorResponse> handleAuthenticationException(Exception ex) {
         ErrorResponse response = ErrorResponse.builder()
                 .status(HttpStatus.UNAUTHORIZED.value())

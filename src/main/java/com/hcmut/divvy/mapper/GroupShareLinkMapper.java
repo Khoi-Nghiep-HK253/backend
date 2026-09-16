@@ -15,7 +15,8 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface GroupShareLinkMapper {
 
-    default CreateShareLinkModel toCreateShareLinkModel(CreateShareLinkRequest request, Integer groupId, String currentUsername) {
+    default CreateShareLinkModel toCreateShareLinkModel(CreateShareLinkRequest request, Integer groupId,
+            String currentUsername) {
         return CreateShareLinkModel.builder()
                 .groupId(groupId)
                 .currentUsername(currentUsername)
@@ -53,7 +54,8 @@ public interface GroupShareLinkMapper {
     }
 
     default ShareLinkResponse toShareLinkResponse(GroupShareLink shareLink) {
-        if (shareLink == null) return null;
+        if (shareLink == null)
+            return null;
         return ShareLinkResponse.builder()
                 .id(shareLink.getId())
                 .groupId(shareLink.getGroup() != null ? shareLink.getGroup().getId() : null)
@@ -68,7 +70,8 @@ public interface GroupShareLinkMapper {
                 .build();
     }
 
-    default GroupPreviewResponse toGroupPreviewResponse(Group group, Integer memberCount, String inviteCode, boolean isValid, String invalidReason) {
+    default GroupPreviewResponse toGroupPreviewResponse(Group group, Integer memberCount, String inviteCode,
+            boolean isValid, String invalidReason) {
         if (group == null) {
             return GroupPreviewResponse.builder()
                     .inviteCode(inviteCode)

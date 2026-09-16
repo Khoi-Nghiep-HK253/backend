@@ -100,7 +100,8 @@ public class GroupServiceImpl implements GroupService {
     }
 
     private Category findCategory(Integer categoryId) {
-        if (categoryId == null) return null;
+        if (categoryId == null)
+            return null;
         return categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "id", categoryId));
     }

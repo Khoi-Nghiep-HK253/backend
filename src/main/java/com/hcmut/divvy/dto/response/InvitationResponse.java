@@ -22,13 +22,21 @@ public class InvitationResponse {
     private LocalDateTime expiresAt;
     private LocalDateTime createdAt;
 
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     public static class GroupInfo {
         private Integer id;
         private String name;
     }
 
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     public static class UserInfo {
         private Integer id;
         private String username;

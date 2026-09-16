@@ -19,7 +19,6 @@ public class HealthController {
         return ResponseEntity.ok(Map.of(
                 "status", "UP",
                 "service", "divvy-backend",
-                "timestamp", Instant.now().toString()
-        ));
+                "timestamp", Instant.now().toString()));
     }
 }

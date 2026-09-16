@@ -156,7 +156,8 @@ class ExpenseValidatorTest {
 
     @Test
     void validateShares_shares_throwsWhenRatioNotPositive() {
-        List<ExpenseShareRequest> shares = List.of(ExpenseShareRequest.builder().userId(1).ratio(BigDecimal.ZERO).build());
+        List<ExpenseShareRequest> shares = List
+                .of(ExpenseShareRequest.builder().userId(1).ratio(BigDecimal.ZERO).build());
         assertThatThrownBy(() -> validator.validateShares(SplitType.SHARES, BigDecimal.TEN, shares, groupUserIds))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("Ratio must be provided");

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  *
  * <p>
  * Usage example:
- * 
+ *
  * <pre>
  * catRepository.findById(id)
  *         .orElseThrow(() -> new ResourceNotFoundException("Cat", "id", id));

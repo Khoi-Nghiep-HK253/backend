@@ -14,7 +14,7 @@ import java.util.Map;
  *
  * <p>
  * Required properties (can be set in {@code .env} or {@code application.yml}):
- * 
+ *
  * <pre>
  *   CLOUDINARY_CLOUD_NAME=your_cloud_name
  *   CLOUDINARY_API_KEY=your_api_key

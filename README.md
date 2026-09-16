@@ -18,6 +18,7 @@ Backend service for **Divvy** — a group expense management system supporting e
 | Code Generation | Lombok |
 | Containerization | Docker + Docker Compose |
 | Build Tool | Gradle |
+| Code Formatting | Spotless (Eclipse formatter, 4-space) |
 
 ---
 
@@ -127,6 +128,20 @@ Once the service is running, the interactive API explorer is available at:
 
 # Build executable JAR
 ./gradlew bootJar
+```
+
+Unit tests currently cover the `validator` package (`src/test/java/com/hcmut/divvy/validator`) — pure rule-assertion classes that need no mocking, one test class per validator.
+
+### Code Formatting (Spotless)
+
+The project enforces consistent 4-space indentation via the [Spotless](https://github.com/diffplug/spotless) Gradle plugin (Eclipse formatter, profile at `config/spotless/eclipse-java-formatter.xml`):
+
+```bash
+# Check formatting (like `eslint .`) — also runs as part of `check`
+./gradlew spotlessCheck
+
+# Auto-fix formatting (like `eslint --fix` / `prettier --write`)
+./gradlew spotlessApply
 ```
 
 ---

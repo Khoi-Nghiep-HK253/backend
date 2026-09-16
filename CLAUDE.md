@@ -23,6 +23,12 @@ Divvy Backend — a Spring Boot service for group expense management (expense sp
 # Build executable JAR
 ./gradlew bootJar
 
+# Check code formatting (fails if any file violates the style profile)
+./gradlew spotlessCheck
+
+# Auto-fix code formatting
+./gradlew spotlessApply
+
 # Full stack via Docker (db + backend)
 docker-compose up -d --build
 
@@ -31,6 +37,8 @@ docker-compose up -d db
 ```
 
 Swagger UI is served at `/swagger-ui.html` (OpenAPI JSON at `/v3/api-docs`) once running.
+
+Formatting is enforced via the Spotless Gradle plugin using an Eclipse formatter profile at `config/spotless/eclipse-java-formatter.xml` (4-space indent, no tabs; deliberately does not reflow lines/comments the author already wrapped — it only normalizes indentation/whitespace). Run `spotlessApply` before committing if you're unsure about formatting.
 
 ### Database migrations (entity-first / Prisma-like workflow)
 
@@ -72,6 +80,10 @@ Package layout (`src/main/java/com/hcmut/divvy/`):
 - `helper` — Stateless utilities (`StringHelper`, `TokenHelper`).
 
 When adding a new domain feature, follow the existing layering exactly: Controller → Mapper → single Command Model → Service interface + Impl → Validator (pure, entities passed in) → Repository → Entity. Don't inject repositories into validators, and don't give a service method more than one model parameter.
+
+### Testing
+
+Unit tests live under `src/test/java/com/hcmut/divvy/` mirroring the main package layout. The `validator` package has full coverage (one test class per validator, e.g. `UserValidatorTest`, `ExpenseValidatorTest`) — since validators take no repository dependency, tests instantiate them directly with `new` and real collaborators (e.g. a real `BCryptPasswordEncoder` instead of a mock) rather than mocking. Follow this pattern for new validators.
 
 ### Auth & security
 

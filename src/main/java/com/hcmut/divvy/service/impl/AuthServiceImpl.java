@@ -37,127 +37,127 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public class AuthServiceImpl implements AuthService {
 
-        private final UserRepository userRepository;
-        private final UserMapper userMapper;
-        private final AuthMapper authMapper;
-        private final UserValidator userValidator;
-        private final PasswordResetValidator passwordResetValidator;
-        private final PasswordEncoder passwordEncoder;
-        private final JwtTokenProvider tokenProvider;
-        private final AuthenticationManager authenticationManager;
-        private final PasswordResetTokenRepository passwordResetTokenRepository;
-        private final EmailService emailService;
+    private final UserRepository userRepository;
+    private final UserMapper userMapper;
+    private final AuthMapper authMapper;
+    private final UserValidator userValidator;
+    private final PasswordResetValidator passwordResetValidator;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtTokenProvider tokenProvider;
+    private final AuthenticationManager authenticationManager;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final EmailService emailService;
 
-        @Value("${app.base-url:http://localhost:3000}")
-        private String baseUrl;
+    @Value("${app.base-url:http://localhost:3000}")
+    private String baseUrl;
 
-        @Value("${app.reset-password.expiry-minutes:30}")
-        private int resetTokenExpiryMinutes;
+    @Value("${app.reset-password.expiry-minutes:30}")
+    private int resetTokenExpiryMinutes;
 
-        @Override
-        @Transactional
-        public AuthResponse register(RegisterModel model) {
-                boolean usernameExists = userRepository.existsByUsername(model.getUsername());
-                boolean emailExists = userRepository.existsByEmail(model.getEmail());
-                userValidator.validateCreateUser(usernameExists, emailExists);
+    @Override
+    @Transactional
+    public AuthResponse register(RegisterModel model) {
+        boolean usernameExists = userRepository.existsByUsername(model.getUsername());
+        boolean emailExists = userRepository.existsByEmail(model.getEmail());
+        userValidator.validateCreateUser(usernameExists, emailExists);
 
-                User user = userMapper.toEntity(model);
-                user.setHashPassword(passwordEncoder.encode(model.getPassword()));
+        User user = userMapper.toEntity(model);
+        user.setHashPassword(passwordEncoder.encode(model.getPassword()));
 
-                User saved = userRepository.save(user);
-                String token = tokenProvider.generateToken(saved.getUsername());
+        User saved = userRepository.save(user);
+        String token = tokenProvider.generateToken(saved.getUsername());
 
-                try {
-                        String welcomeLink = baseUrl + "/welcome";
-                        emailService.sendWelcomeEmail(saved.getEmail(), saved.getUsername(), welcomeLink);
-                } catch (Exception e) {
-                        log.error("Failed to trigger welcome email for user {}", saved.getUsername(), e);
-                }
-
-                return authMapper.toAuthResponse(token, userMapper.toResponse(saved));
+        try {
+            String welcomeLink = baseUrl + "/welcome";
+            emailService.sendWelcomeEmail(saved.getEmail(), saved.getUsername(), welcomeLink);
+        } catch (Exception e) {
+            log.error("Failed to trigger welcome email for user {}", saved.getUsername(), e);
         }
 
-        @Override
-        public AuthResponse login(LoginModel model) {
-                authenticationManager.authenticate(
-                                new UsernamePasswordAuthenticationToken(model.getUsernameOrEmail(),
-                                                model.getPassword()));
+        return authMapper.toAuthResponse(token, userMapper.toResponse(saved));
+    }
 
-                User user = userRepository.findByUsername(model.getUsernameOrEmail())
-                                .orElseGet(() -> userRepository.findByEmail(model.getUsernameOrEmail())
-                                                .orElseThrow(() -> new ResourceNotFoundException("User",
-                                                                "usernameOrEmail", model.getUsernameOrEmail())));
+    @Override
+    public AuthResponse login(LoginModel model) {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(model.getUsernameOrEmail(),
+                        model.getPassword()));
 
-                String token = tokenProvider.generateToken(user.getUsername());
+        User user = userRepository.findByUsername(model.getUsernameOrEmail())
+                .orElseGet(() -> userRepository.findByEmail(model.getUsernameOrEmail())
+                        .orElseThrow(() -> new ResourceNotFoundException("User",
+                                "usernameOrEmail", model.getUsernameOrEmail())));
 
-                return authMapper.toAuthResponse(token, userMapper.toResponse(user));
+        String token = tokenProvider.generateToken(user.getUsername());
+
+        return authMapper.toAuthResponse(token, userMapper.toResponse(user));
+    }
+
+    @Override
+    public UserResponse getCurrentUser(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+
+        return userMapper.toResponse(user);
+    }
+
+    @Override
+    @Transactional
+    public void forgotPassword(ForgotPasswordModel model) {
+        Optional<User> userOpt = userRepository.findByEmail(model.getEmail());
+
+        if (userOpt.isEmpty()) {
+            log.info("Password reset requested for unregistered email: {}", model.getEmail());
+            return;
         }
 
-        @Override
-        public UserResponse getCurrentUser(String username) {
-                User user = userRepository.findByUsername(username)
-                                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+        User user = userOpt.get();
 
-                return userMapper.toResponse(user);
-        }
+        passwordResetTokenRepository.invalidateAllByUserId(user.getId());
 
-        @Override
-        @Transactional
-        public void forgotPassword(ForgotPasswordModel model) {
-                Optional<User> userOpt = userRepository.findByEmail(model.getEmail());
+        String rawToken = TokenHelper.generateToken();
+        PasswordResetToken resetToken = authMapper.toPasswordResetToken(
+                user,
+                rawToken,
+                LocalDateTime.now().plusMinutes(resetTokenExpiryMinutes),
+                false);
 
-                if (userOpt.isEmpty()) {
-                        log.info("Password reset requested for unregistered email: {}", model.getEmail());
-                        return;
-                }
+        passwordResetTokenRepository.save(resetToken);
 
-                User user = userOpt.get();
+        String resetLink = baseUrl + "/reset-password?token=" + rawToken;
+        emailService.sendPasswordResetEmail(user.getEmail(), resetLink);
 
-                passwordResetTokenRepository.invalidateAllByUserId(user.getId());
+        log.info("Password reset token generated for user id={}", user.getId());
+    }
 
-                String rawToken = TokenHelper.generateToken();
-                PasswordResetToken resetToken = authMapper.toPasswordResetToken(
-                                user,
-                                rawToken,
-                                LocalDateTime.now().plusMinutes(resetTokenExpiryMinutes),
-                                false);
+    @Override
+    public VerifyTokenResponse verifyResetToken(VerifyResetTokenModel model) {
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(model.getToken())
+                .orElse(null);
+        passwordResetValidator.validateToken(resetToken);
 
-                passwordResetTokenRepository.save(resetToken);
+        String maskedEmail = StringHelper.maskEmail(resetToken.getUser().getEmail());
+        return authMapper.toVerifyTokenResponse(maskedEmail, resetToken.getExpiresAt());
+    }
 
-                String resetLink = baseUrl + "/reset-password?token=" + rawToken;
-                emailService.sendPasswordResetEmail(user.getEmail(), resetLink);
+    @Override
+    @Transactional
+    public void resetPassword(ResetPasswordModel model) {
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(model.getToken())
+                .orElse(null);
+        User user = resetToken != null ? resetToken.getUser() : null;
 
-                log.info("Password reset token generated for user id={}", user.getId());
-        }
+        passwordResetValidator.validateResetPasswordRequest(model, resetToken, user, passwordEncoder);
 
-        @Override
-        public VerifyTokenResponse verifyResetToken(VerifyResetTokenModel model) {
-                PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(model.getToken())
-                                .orElse(null);
-                passwordResetValidator.validateToken(resetToken);
+        User validUser = Objects.requireNonNull(user);
+        PasswordResetToken validToken = Objects.requireNonNull(resetToken);
 
-                String maskedEmail = StringHelper.maskEmail(resetToken.getUser().getEmail());
-                return authMapper.toVerifyTokenResponse(maskedEmail, resetToken.getExpiresAt());
-        }
+        validUser.setHashPassword(passwordEncoder.encode(model.getNewPassword()));
+        userRepository.save(validUser);
 
-        @Override
-        @Transactional
-        public void resetPassword(ResetPasswordModel model) {
-                PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(model.getToken())
-                                .orElse(null);
-                User user = resetToken != null ? resetToken.getUser() : null;
+        validToken.setUsed(true);
+        passwordResetTokenRepository.save(validToken);
 
-                passwordResetValidator.validateResetPasswordRequest(model, resetToken, user, passwordEncoder);
-
-                User validUser = Objects.requireNonNull(user);
-                PasswordResetToken validToken = Objects.requireNonNull(resetToken);
-
-                validUser.setHashPassword(passwordEncoder.encode(model.getNewPassword()));
-                userRepository.save(validUser);
-
-                validToken.setUsed(true);
-                passwordResetTokenRepository.save(validToken);
-
-                log.info("Password reset successfully for user id={}", validUser.getId());
-        }
+        log.info("Password reset successfully for user id={}", validUser.getId());
+    }
 }

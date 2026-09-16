@@ -98,7 +98,8 @@ public class GroupShareLinkServiceImpl implements GroupShareLinkService {
             throw new BusinessException("Share link does not belong to specified group.", HttpStatus.BAD_REQUEST);
         }
 
-        GroupMember callerMember = groupMemberRepository.findByGroupIdAndUserId(shareLink.getGroup().getId(), caller.getId())
+        GroupMember callerMember = groupMemberRepository
+                .findByGroupIdAndUserId(shareLink.getGroup().getId(), caller.getId())
                 .orElseThrow(() -> new BusinessException("You are not a member of this group.", HttpStatus.FORBIDDEN));
 
         if (callerMember.getRole() != GroupRole.OWNER) {
@@ -116,19 +117,23 @@ public class GroupShareLinkServiceImpl implements GroupShareLinkService {
         GroupShareLink shareLink = shareLinkRepository.findByInviteCode(model.getInviteCode()).orElse(null);
 
         if (shareLink == null) {
-            return shareLinkMapper.toGroupPreviewResponse(null, 0, model.getInviteCode(), false, "Invalid or non-existent invite code.");
+            return shareLinkMapper.toGroupPreviewResponse(null, 0, model.getInviteCode(), false,
+                    "Invalid or non-existent invite code.");
         }
 
         if (shareLink.getStatus() != ShareLinkStatus.ACTIVE) {
-            return shareLinkMapper.toGroupPreviewResponse(shareLink.getGroup(), 0, model.getInviteCode(), false, "This invite link has been revoked.");
+            return shareLinkMapper.toGroupPreviewResponse(shareLink.getGroup(), 0, model.getInviteCode(), false,
+                    "This invite link has been revoked.");
         }
 
         if (shareLink.getExpiresAt() != null && shareLink.getExpiresAt().isBefore(LocalDateTime.now())) {
-            return shareLinkMapper.toGroupPreviewResponse(shareLink.getGroup(), 0, model.getInviteCode(), false, "This invite link has expired.");
+            return shareLinkMapper.toGroupPreviewResponse(shareLink.getGroup(), 0, model.getInviteCode(), false,
+                    "This invite link has expired.");
         }
 
         if (shareLink.getMaxUses() != null && shareLink.getUsedCount() >= shareLink.getMaxUses()) {
-            return shareLinkMapper.toGroupPreviewResponse(shareLink.getGroup(), 0, model.getInviteCode(), false, "This invite link has reached its maximum usage limit.");
+            return shareLinkMapper.toGroupPreviewResponse(shareLink.getGroup(), 0, model.getInviteCode(), false,
+                    "This invite link has reached its maximum usage limit.");
         }
 
         Group group = shareLink.getGroup();
@@ -155,7 +160,8 @@ public class GroupShareLinkServiceImpl implements GroupShareLinkService {
         }
 
         if (shareLink.getMaxUses() != null && shareLink.getUsedCount() >= shareLink.getMaxUses()) {
-            throw new BusinessException("This invite link has reached its maximum usage limit.", HttpStatus.BAD_REQUEST);
+            throw new BusinessException("This invite link has reached its maximum usage limit.",
+                    HttpStatus.BAD_REQUEST);
         }
 
         Group group = shareLink.getGroup();

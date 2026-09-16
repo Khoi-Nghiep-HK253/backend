@@ -16,7 +16,11 @@ public class GroupMemberResponse {
     private GroupRole role;
     private LocalDateTime joinedAt;
 
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     public static class UserInfo {
         private Integer id;
         private String username;

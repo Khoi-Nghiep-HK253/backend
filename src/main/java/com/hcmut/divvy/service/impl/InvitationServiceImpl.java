@@ -57,9 +57,11 @@ public class InvitationServiceImpl implements InvitationService {
         User invitee = findUserById(model.getInviteeId());
         Group group = findGroupById(model.getGroupId());
 
-        GroupMember inviterMember = groupMemberRepository.findByGroupIdAndUserId(group.getId(), inviter.getId()).orElse(null);
+        GroupMember inviterMember = groupMemberRepository.findByGroupIdAndUserId(group.getId(), inviter.getId())
+                .orElse(null);
         boolean isAlreadyMember = groupMemberRepository.existsByGroupIdAndUserId(group.getId(), invitee.getId());
-        boolean hasPending = groupInvitationRepository.existsByGroupIdAndInviteeIdAndStatus(group.getId(), invitee.getId(), InvitationStatus.PENDING);
+        boolean hasPending = groupInvitationRepository.existsByGroupIdAndInviteeIdAndStatus(group.getId(),
+                invitee.getId(), InvitationStatus.PENDING);
 
         invitationValidator.validateSendInvitation(inviterMember, isAlreadyMember, hasPending);
 
@@ -70,17 +72,20 @@ public class InvitationServiceImpl implements InvitationService {
 
         // Send Group Invitation Email asynchronously
         String inviteLink = frontendUrl + "/invitations/accept?token=" + saved.getToken();
-        String inviterDisplayName = inviter.getFirstname() != null ? inviter.getFirstname() + " " + inviter.getLastname() : inviter.getUsername();
-        emailService.sendGroupInvitationEmail(invitee.getEmail(), inviterDisplayName, group.getName(), inviteLink, saved.getMessage());
+        String inviterDisplayName = inviter.getFirstname() != null
+                ? inviter.getFirstname() + " " + inviter.getLastname()
+                : inviter.getUsername();
+        emailService.sendGroupInvitationEmail(invitee.getEmail(), inviterDisplayName, group.getName(), inviteLink,
+                saved.getMessage());
 
         return invitationMapper.toResponse(saved);
     }
 
-
     @Override
     public List<InvitationResponse> getGroupInvitations(GetGroupInvitationsModel model) {
         User caller = findUserByUsername(model.getCurrentUsername());
-        GroupMember callerMember = groupMemberRepository.findByGroupIdAndUserId(model.getGroupId(), caller.getId()).orElse(null);
+        GroupMember callerMember = groupMemberRepository.findByGroupIdAndUserId(model.getGroupId(), caller.getId())
+                .orElse(null);
         groupValidator.validateIsAdmin(callerMember);
 
         List<GroupInvitation> invitations = model.getStatus() != null
@@ -149,7 +154,8 @@ public class InvitationServiceImpl implements InvitationService {
         User caller = findUserByUsername(model.getCurrentUsername());
         GroupInvitation invitation = findInvitationById(model.getInvitationId());
 
-        GroupMember callerMember = groupMemberRepository.findByGroupIdAndUserId(invitation.getGroup().getId(), caller.getId()).orElse(null);
+        GroupMember callerMember = groupMemberRepository
+                .findByGroupIdAndUserId(invitation.getGroup().getId(), caller.getId()).orElse(null);
         invitationValidator.validateRevokeInvitation(invitation, callerMember);
 
         invitation.setStatus(InvitationStatus.REVOKED);
