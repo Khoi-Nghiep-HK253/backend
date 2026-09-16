@@ -94,8 +94,12 @@ Unit tests live under `src/test/java/com/hcmut/divvy/` mirroring the main packag
 ### Config / environment
 
 - Profiles: `dev` (default, enables `DevDataSeeder`) and `prod` (`application-dev.yml`, `application-prod.yml`, `application.yml`).
-- Secrets/env vars are loaded via dotenv (`.env`, see `.env.example`): `JWT_SECRET`, Resend email vars (`RESEND_API_URL`, `RESEND_API_KEY`, `APP_MAIL_FROM`, `APP_MAIL_ENABLED`), Cloudinary vars (`CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`), and `APP_BASE_URL` (used in emailed links, e.g. password reset).
+- Secrets/env vars are loaded via dotenv (`.env`, see `.env.example`): `JWT_SECRET`, Resend email vars (`RESEND_API_URL`, `RESEND_API_KEY`, `APP_MAIL_FROM`, `APP_MAIL_ENABLED`), Cloudinary vars (`CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`), `ANTHROPIC_API_KEY`/`ANTHROPIC_MODEL` (AI receipt scanning), and `APP_BASE_URL` (used in emailed links, e.g. password reset).
 - Email is sent via the Resend HTTP API (not SMTP); templates live in `src/main/resources/templates/email`.
+
+### AI (Spring AI + Anthropic)
+
+`AiConfig` (`config/AiConfig.java`) exposes a `ChatClient` bean built from the Spring AI Anthropic auto-configuration (`spring.ai.anthropic.*` in `application.yml`). Current usage: `ReceiptScanService`/`ReceiptScanServiceImpl` — `POST /api/groups/{groupId}/expenses/scan-receipt` sends a receipt photo to Claude (multimodal) and returns a **draft, non-persisted** `ReceiptScanResponse` shaped like `CreateExpenseRequest` (description, totalAmount, payers, shares, ...) for the client to review/edit before calling the real `POST /expenses`. The AI's raw JSON output is parsed into the internal `ReceiptExtraction` record (`service/impl/ReceiptExtraction.java`) via `ChatClient`'s structured-output `.entity(Class)` — never expose that record directly through the API. Follow this pattern (system+user prompt, `.entity(...)`, map into a public response DTO) for future AI features.
 
 ## Documentation
 

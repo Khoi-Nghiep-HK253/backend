@@ -1,18 +1,23 @@
 package com.hcmut.divvy.mapper;
 
 import com.hcmut.divvy.dto.request.CreateExpenseRequest;
+import com.hcmut.divvy.dto.request.ExpensePayerRequest;
+import com.hcmut.divvy.dto.request.ExpenseShareRequest;
 import com.hcmut.divvy.dto.request.UpdateExpenseRequest;
 import com.hcmut.divvy.dto.response.*;
 import com.hcmut.divvy.entity.*;
 import com.hcmut.divvy.entity.enums.DebtStatus;
 import com.hcmut.divvy.entity.enums.SplitType;
+import com.hcmut.divvy.service.impl.ReceiptExtraction;
 import com.hcmut.divvy.service.model.*;
 import org.mapstruct.*;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface ExpenseMapper {
@@ -20,6 +25,14 @@ public interface ExpenseMapper {
     @Mapping(target = "groupId", source = "groupId")
     @Mapping(target = "currentUsername", source = "currentUsername")
     CreateExpenseModel toModel(CreateExpenseRequest request, Integer groupId, String currentUsername);
+
+    default ScanReceiptModel toScanReceiptModel(MultipartFile image, Integer groupId, String currentUsername) {
+        return ScanReceiptModel.builder()
+                .image(image)
+                .groupId(groupId)
+                .currentUsername(currentUsername)
+                .build();
+    }
 
     @Mapping(target = "groupId", source = "groupId")
     @Mapping(target = "expenseId", source = "expenseId")
@@ -194,6 +207,40 @@ public interface ExpenseMapper {
                 .id(currency.getId())
                 .code(currency.getAcronym())
                 .name(currency.getName())
+                .build();
+    }
+
+    default ReceiptScanResponse toReceiptScanResponse(ReceiptExtraction extraction, User caller,
+            List<GroupMember> groupMembers, Integer defaultCurrencyId) {
+        List<ExpensePayerRequest> payers = List.of(
+                ExpensePayerRequest.builder().userId(caller.getId()).amount(extraction.totalAmount()).build());
+
+        List<ExpenseShareRequest> shares = groupMembers.stream()
+                .map(m -> ExpenseShareRequest.builder().userId(m.getUser().getId()).build())
+                .collect(Collectors.toList());
+
+        List<ReceiptScanResponse.LineItem> lineItems = extraction.lineItems() == null
+                ? List.of()
+                : extraction.lineItems().stream()
+                        .map(item -> ReceiptScanResponse.LineItem.builder()
+                                .name(item.name())
+                                .amount(item.amount())
+                                .build())
+                        .collect(Collectors.toList());
+
+        String merchantName = extraction.merchantName();
+        String description = merchantName != null && !merchantName.isBlank() ? merchantName : "Hóa đơn quét từ ảnh";
+
+        return ReceiptScanResponse.builder()
+                .description(description)
+                .totalAmount(extraction.totalAmount())
+                .currencyId(defaultCurrencyId)
+                .expenseDate(extraction.expenseDate() != null ? extraction.expenseDate() : LocalDate.now())
+                .splitType(SplitType.EQUAL)
+                .payers(payers)
+                .shares(shares)
+                .lineItems(lineItems)
+                .notes(extraction.notes())
                 .build();
     }
 }

@@ -19,6 +19,16 @@ repositories {
     mavenCentral()
 }
 
+ext {
+    springAiVersion = '2.0.1'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
+    }
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -56,6 +66,9 @@ dependencies {
 
     // ── Cloudinary CDN ─────────────────────────────────────────────────────────
     implementation 'com.cloudinary:cloudinary-http44:1.39.0'
+
+    // ── AI (receipt scanning) ─────────────────────────────────────────────────
+    implementation 'org.springframework.ai:spring-ai-starter-model-anthropic'
 }
 
 tasks.named('test') {

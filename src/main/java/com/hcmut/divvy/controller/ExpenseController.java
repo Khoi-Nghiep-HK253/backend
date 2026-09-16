@@ -5,8 +5,10 @@ import com.hcmut.divvy.dto.request.CreateExpenseRequest;
 import com.hcmut.divvy.dto.request.UpdateExpenseRequest;
 import com.hcmut.divvy.dto.response.ExpenseResponse;
 import com.hcmut.divvy.dto.response.ExpenseSummaryResponse;
+import com.hcmut.divvy.dto.response.ReceiptScanResponse;
 import com.hcmut.divvy.mapper.ExpenseMapper;
 import com.hcmut.divvy.service.ExpenseService;
+import com.hcmut.divvy.service.ReceiptScanService;
 import com.hcmut.divvy.service.model.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,10 +20,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 
@@ -33,6 +37,7 @@ import java.time.LocalDate;
 public class ExpenseController {
 
     private final ExpenseService expenseService;
+    private final ReceiptScanService receiptScanService;
     private final ExpenseMapper expenseMapper;
 
     /**
@@ -69,6 +74,35 @@ public class ExpenseController {
         ExpenseResponse response = expenseService.create(model);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.created(response, "Expense created successfully"));
+    }
+
+    /**
+     * Scan a receipt photo with AI and return a draft expense for review.
+     * <p>
+     * Nothing is persisted by this call. The response mirrors
+     * {@link CreateExpenseRequest}'s shape (description, totalAmount, payers,
+     * shares, ...) so the client can let the user review/edit the extracted
+     * values and then submit them to {@link #createExpense} as usual.
+     * Defaults to an EQUAL split across current group members, with the caller
+     * set as the sole payer for the full amount.
+     *
+     * @param groupId        the group's ID
+     * @param image          the receipt photo (JPEG/PNG/WEBP)
+     * @param authentication the currently authenticated user (must be a group
+     *                       member)
+     * @return {@code 200 OK} with a draft {@code ReceiptScanResponse};
+     *         {@code 422} if the receipt could not be read; {@code 403} if the
+     *         caller is not a member
+     */
+    @PostMapping(value = "/scan-receipt", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Scan a receipt photo with AI", description = "Extracts a draft expense (not persisted) from a receipt photo using AI; review and submit via POST /expenses")
+    public ResponseEntity<ApiResponse<ReceiptScanResponse>> scanReceipt(
+            @PathVariable Integer groupId,
+            @RequestParam("image") MultipartFile image,
+            Authentication authentication) {
+        ScanReceiptModel model = expenseMapper.toScanReceiptModel(image, groupId, authentication.getName());
+        ReceiptScanResponse response = receiptScanService.scanReceipt(model);
+        return ResponseEntity.ok(ApiResponse.ok(response, "Receipt scanned successfully"));
     }
 
     /**
