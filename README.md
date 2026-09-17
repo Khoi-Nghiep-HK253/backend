@@ -19,7 +19,7 @@ Backend service for **Divvy** — a group expense management system supporting e
 | Containerization | Docker + Docker Compose |
 | Build Tool | Gradle |
 | Code Formatting | Spotless (Eclipse formatter, 4-space) |
-| AI | Spring AI + Anthropic Claude (multimodal receipt scanning) |
+| AI | Spring AI + Google Gemini (multimodal receipt scanning) |
 
 ---
 
@@ -184,9 +184,9 @@ The project enforces consistent 4-space indentation via the [Spotless](https://g
 
 ## 🤖 AI-Assisted Receipt Scanning
 
-`POST /api/groups/{groupId}/expenses/scan-receipt` (multipart, field `image`) sends a receipt photo to Claude (Anthropic, multimodal) and returns a **draft** expense — merchant/description, total amount, line items, an EQUAL split across current group members, and the caller as the sole payer. Nothing is persisted by this call; the client reviews/edits the draft and submits it to the normal `POST /api/groups/{groupId}/expenses` to actually create the expense.
+`POST /api/groups/{groupId}/expenses/scan-receipt` (multipart, field `image`) sends a receipt photo to Google Gemini (multimodal) and returns a **draft** expense — merchant/description, total amount, line items, an EQUAL split across current group members, and the caller as the sole payer. Nothing is persisted by this call; the client reviews/edits the draft and submits it to the normal `POST /api/groups/{groupId}/expenses` to actually create the expense.
 
-Requires `ANTHROPIC_API_KEY` (see `.env.example`) — get one at [console.anthropic.com](https://console.anthropic.com). Model is configurable via `ANTHROPIC_MODEL` (defaults to `claude-haiku-4-5-20251001`).
+Requires `GEMINI_API_KEY` (see `.env.example`) — get one at [aistudio.google.com/apikey](https://aistudio.google.com/apikey). Model is configurable via `GEMINI_MODEL` (defaults to `gemini-3.1-flash-lite`).
 
 ---
 
