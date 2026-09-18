@@ -184,7 +184,7 @@ The project enforces consistent 4-space indentation via the [Spotless](https://g
 
 ## 🤖 AI-Assisted Receipt Scanning
 
-`POST /api/groups/{groupId}/expenses/scan-receipt` (multipart, field `image`) sends a receipt photo to Google Gemini (multimodal) and returns a **draft** expense — merchant/description, total amount, line items, an EQUAL split across current group members, and the caller as the sole payer. Nothing is persisted by this call; the client reviews/edits the draft and submits it to the normal `POST /api/groups/{groupId}/expenses` to actually create the expense.
+`POST /api/groups/{groupId}/expenses/scan-receipt` (multipart, field `image`) sends a receipt photo to Google Gemini (multimodal) and returns the data read from it — `description` (merchant name), `totalAmount`, `currency` (`{id, name, acronym}`, detected from the receipt, default VND), and `lineItems`. Nothing is persisted and no payers/shares/split type/date are guessed: the client pre-fills its "create expense" form with this data, the user chooses who paid, who shares and how to split, and the client then submits the normal `POST /api/groups/{groupId}/expenses`.
 
 Requires `GEMINI_API_KEY` (see `.env.example`) — get one at [aistudio.google.com/apikey](https://aistudio.google.com/apikey). Model is configurable via `GEMINI_MODEL` (defaults to `gemini-3.1-flash-lite`).
 

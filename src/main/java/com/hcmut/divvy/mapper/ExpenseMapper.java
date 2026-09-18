@@ -1,14 +1,11 @@
 package com.hcmut.divvy.mapper;
 
 import com.hcmut.divvy.dto.request.CreateExpenseRequest;
-import com.hcmut.divvy.dto.request.ExpensePayerRequest;
-import com.hcmut.divvy.dto.request.ExpenseShareRequest;
 import com.hcmut.divvy.dto.request.UpdateExpenseRequest;
 import com.hcmut.divvy.dto.response.*;
 import com.hcmut.divvy.entity.*;
 import com.hcmut.divvy.entity.enums.DebtStatus;
 import com.hcmut.divvy.entity.enums.SplitType;
-import com.hcmut.divvy.service.impl.ReceiptExtraction;
 import com.hcmut.divvy.service.model.*;
 import org.mapstruct.*;
 import org.springframework.data.domain.Pageable;
@@ -210,19 +207,11 @@ public interface ExpenseMapper {
                 .build();
     }
 
-    default ReceiptScanResponse toReceiptScanResponse(ReceiptExtraction extraction, User caller,
-            List<GroupMember> groupMembers, Integer defaultCurrencyId) {
-        List<ExpensePayerRequest> payers = List.of(
-                ExpensePayerRequest.builder().userId(caller.getId()).amount(extraction.totalAmount()).build());
-
-        List<ExpenseShareRequest> shares = groupMembers.stream()
-                .map(m -> ExpenseShareRequest.builder().userId(m.getUser().getId()).build())
-                .collect(Collectors.toList());
-
-        List<ReceiptScanResponse.LineItem> lineItems = extraction.lineItems() == null
+    default ReceiptScanResponse toReceiptScanResponse(ReceiptExtraction extraction, Currency currency) {
+        List<ReceiptScanResponse.Item> lineItems = extraction.items() == null
                 ? List.of()
-                : extraction.lineItems().stream()
-                        .map(item -> ReceiptScanResponse.LineItem.builder()
+                : extraction.items().stream()
+                        .map(item -> ReceiptScanResponse.Item.builder()
                                 .name(item.name())
                                 .amount(item.amount())
                                 .build())
@@ -234,13 +223,14 @@ public interface ExpenseMapper {
         return ReceiptScanResponse.builder()
                 .description(description)
                 .totalAmount(extraction.totalAmount())
-                .currencyId(defaultCurrencyId)
-                .expenseDate(extraction.expenseDate() != null ? extraction.expenseDate() : LocalDate.now())
-                .splitType(SplitType.EQUAL)
-                .payers(payers)
-                .shares(shares)
-                .lineItems(lineItems)
-                .notes(extraction.notes())
+                .currency(currency == null
+                        ? null
+                        : ReceiptScanResponse.CurrencyInfo.builder()
+                                .id(currency.getId())
+                                .name(currency.getName())
+                                .acronym(currency.getAcronym())
+                                .build())
+                .items(lineItems)
                 .build();
     }
 }

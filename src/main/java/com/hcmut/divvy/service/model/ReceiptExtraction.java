@@ -1,7 +1,6 @@
-package com.hcmut.divvy.service.impl;
+package com.hcmut.divvy.service.model;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -11,11 +10,10 @@ import java.util.List;
  */
 public record ReceiptExtraction(
         String merchantName,
-        LocalDate expenseDate,
         BigDecimal totalAmount,
-        List<LineItem> lineItems,
-        String notes) {
+        String currencyCode,
+        List<Item> items) {
 
-    public record LineItem(String name, BigDecimal amount) {
+    public record Item(String name, BigDecimal amount) {
     }
 }

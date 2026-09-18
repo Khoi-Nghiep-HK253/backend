@@ -1,8 +1,5 @@
 package com.hcmut.divvy.dto.response;
 
-import com.hcmut.divvy.dto.request.ExpensePayerRequest;
-import com.hcmut.divvy.dto.request.ExpenseShareRequest;
-import com.hcmut.divvy.entity.enums.SplitType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -10,13 +7,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Draft expense data extracted from a receipt photo by AI.
- * Not persisted — the client reviews/edits this and then calls the normal
- * "create expense" endpoint with the (possibly corrected) values.
+ * Data read from a receipt photo by AI, used to pre-fill the "create expense" form.
+ * Not persisted — the client lets the user pick payers, shares and split type,
+ * then calls the normal "create expense" endpoint.
  */
 @Getter
 @Setter
@@ -27,21 +23,27 @@ public class ReceiptScanResponse {
 
     private String description;
     private BigDecimal totalAmount;
-    private Integer currencyId;
-    private LocalDate expenseDate;
-    private SplitType splitType;
-    private List<ExpensePayerRequest> payers;
-    private List<ExpenseShareRequest> shares;
-    private List<LineItem> lineItems;
-    private String notes;
+    private CurrencyInfo currency;
+    private List<Item> items;
 
     @Getter
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    public static class LineItem {
+    public static class Item {
         private String name;
         private BigDecimal amount;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class CurrencyInfo {
+        private Integer id;
+        private String name;
+        private String acronym;
     }
 }

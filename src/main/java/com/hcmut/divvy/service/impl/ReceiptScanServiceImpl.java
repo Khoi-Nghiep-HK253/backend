@@ -2,6 +2,7 @@ package com.hcmut.divvy.service.impl;
 
 import com.hcmut.divvy.common.exception.BusinessException;
 import com.hcmut.divvy.dto.response.ReceiptScanResponse;
+import com.hcmut.divvy.entity.Currency;
 import com.hcmut.divvy.entity.Group;
 import com.hcmut.divvy.entity.GroupMember;
 import com.hcmut.divvy.entity.User;
@@ -11,6 +12,7 @@ import com.hcmut.divvy.repository.GroupMemberRepository;
 import com.hcmut.divvy.repository.GroupRepository;
 import com.hcmut.divvy.repository.UserRepository;
 import com.hcmut.divvy.service.ReceiptScanService;
+import com.hcmut.divvy.service.model.ReceiptExtraction;
 import com.hcmut.divvy.service.model.ScanReceiptModel;
 import com.hcmut.divvy.validator.ExpenseValidator;
 import com.hcmut.divvy.validator.GroupValidator;
@@ -28,7 +30,7 @@ import org.springframework.util.MimeType;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -43,9 +45,13 @@ public class ReceiptScanServiceImpl implements ReceiptScanService {
             Leave a field null if it cannot be determined. Receipts may be in Vietnamese or English.""";
 
     private static final String USER_PROMPT = """
-            Extract from this receipt photo: the merchant/store name, the date on the receipt, \
-            the final total amount paid, and the list of line items with their name and price. \
-            If the photo is blurry, cropped, or not a receipt, leave totalAmount null and explain why in notes.""";
+            Extract from this receipt photo: the merchant/store name, \
+            the final total amount paid, the ISO 4217 currency code of the amounts (e.g. VND, USD, EUR; \
+            infer it from symbols like ₫, đ, $, € — null if it is not stated or cannot be inferred), \
+            and the list of line items with their name and price. \
+            If the photo is blurry, cropped, or not a receipt, leave totalAmount null.""";
+
+    private static final String DEFAULT_CURRENCY = "VND";
 
     private final UserRepository userRepository;
     private final GroupRepository groupRepository;
@@ -74,11 +80,21 @@ public class ReceiptScanServiceImpl implements ReceiptScanService {
         ReceiptExtraction extraction = extractReceipt(model.getImage());
         receiptValidator.validateExtraction(extraction.totalAmount());
 
-        List<GroupMember> groupMembers = groupMemberRepository.findAllByGroupId(group.getId());
-        Integer defaultCurrencyId = currencyRepository.findByAcronym("VND").map(currency -> currency.getId())
-                .orElse(null);
+        Currency currency = resolveCurrency(extraction.currencyCode());
 
-        return expenseMapper.toReceiptScanResponse(extraction, caller, groupMembers, defaultCurrencyId);
+        return expenseMapper.toReceiptScanResponse(extraction, currency);
+    }
+
+    /** Currency detected on the receipt if the system supports it, otherwise the default (VND). */
+    private Currency resolveCurrency(String detectedCode) {
+        if (detectedCode != null && !detectedCode.isBlank()) {
+            Optional<Currency> detected = currencyRepository.findByAcronym(detectedCode.trim().toUpperCase());
+            if (detected.isPresent()) {
+                return detected.get();
+            }
+            log.info("Receipt currency '{}' is not supported, falling back to {}", detectedCode, DEFAULT_CURRENCY);
+        }
+        return currencyRepository.findByAcronym(DEFAULT_CURRENCY).orElse(null);
     }
 
     private ReceiptExtraction extractReceipt(MultipartFile image) {
