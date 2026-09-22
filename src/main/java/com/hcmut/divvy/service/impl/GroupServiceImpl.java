@@ -12,6 +12,7 @@ import com.hcmut.divvy.mapper.GroupMemberMapper;
 import com.hcmut.divvy.repository.*;
 import com.hcmut.divvy.service.GroupService;
 import com.hcmut.divvy.service.model.*;
+import com.hcmut.divvy.validator.CategoryValidator;
 import com.hcmut.divvy.validator.GroupValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,12 +31,13 @@ public class GroupServiceImpl implements GroupService {
     private final GroupMapper groupMapper;
     private final GroupMemberMapper groupMemberMapper;
     private final GroupValidator groupValidator;
+    private final CategoryValidator categoryValidator;
 
     @Override
     @Transactional
     public GroupResponse create(CreateGroupModel model) {
         User creator = findUser(model.getCurrentUsername());
-        Category category = findCategory(model.getCategoryId());
+        Category category = resolveCategory(model.getCategoryId(), model.getCategoryName());
 
         Group group = groupMapper.toEntity(model, creator, category);
         Group saved = groupRepository.save(group);
@@ -71,7 +73,7 @@ public class GroupServiceImpl implements GroupService {
 
         groupValidator.validateIsAdmin(member);
 
-        Category category = findCategory(model.getCategoryId());
+        Category category = resolveCategory(model.getCategoryId(), model.getCategoryName());
 
         groupMapper.updateEntity(model, category, group);
 
@@ -99,11 +101,27 @@ public class GroupServiceImpl implements GroupService {
                 .orElseThrow(() -> new ResourceNotFoundException("Group", "id", groupId));
     }
 
-    private Category findCategory(Integer categoryId) {
-        if (categoryId == null)
-            return null;
-        return categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new ResourceNotFoundException("Category", "id", categoryId));
+    /**
+     * Resolves the group's category, one of two ways:
+     * <ul>
+     * <li>{@code categoryId} — must reference an existing category, 404 otherwise.
+     * <li>{@code categoryName} — matched case-insensitively against existing
+     * categories, or created on the spot if none matches.
+     * </ul>
+     * Both are optional; if neither is given, the group has no category.
+     */
+    private Category resolveCategory(Integer categoryId, String categoryName) {
+        groupValidator.validateCategorySelection(categoryId, categoryName);
+
+        if (categoryId != null) {
+            return categoryValidator.validateCategoryExists(categoryRepository.findById(categoryId), categoryId);
+        }
+        if (categoryName != null && !categoryName.isBlank()) {
+            String trimmed = categoryName.trim();
+            return categoryRepository.findByNameIgnoreCase(trimmed)
+                    .orElseGet(() -> categoryRepository.save(Category.builder().name(trimmed).build()));
+        }
+        return null;
     }
 
     private GroupMember findMember(Integer groupId, Integer userId) {

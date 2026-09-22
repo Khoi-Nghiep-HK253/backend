@@ -61,4 +61,32 @@ class GroupValidatorTest {
     void validateIsAdmin_passesWhenOwner() {
         validator.validateIsAdmin(GroupMember.builder().role(GroupRole.OWNER).build());
     }
+
+    @Test
+    void validateCategorySelection_throwsWhenBothProvided() {
+        assertThatThrownBy(() -> validator.validateCategorySelection(1, "Du lịch"))
+                .isInstanceOf(BusinessException.class)
+                .extracting(ex -> ((BusinessException) ex).getStatus())
+                .isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void validateCategorySelection_passesWhenOnlyIdProvided() {
+        validator.validateCategorySelection(1, null);
+    }
+
+    @Test
+    void validateCategorySelection_passesWhenOnlyNameProvided() {
+        validator.validateCategorySelection(null, "Du lịch");
+    }
+
+    @Test
+    void validateCategorySelection_passesWhenNeitherProvided() {
+        validator.validateCategorySelection(null, null);
+    }
+
+    @Test
+    void validateCategorySelection_passesWhenNameBlank() {
+        validator.validateCategorySelection(1, "  ");
+    }
 }

@@ -10,7 +10,8 @@
 
 > The creator is automatically assigned the **OWNER** role in the new group.
 
-### Request Body
+Category is picked one of two ways — send at most one of `categoryId` / `categoryName`, never both:
+
 ```json
 {
   "name": "Summer Trip 2026",
@@ -20,14 +21,28 @@
   "endDate": "2026-08-05"
 }
 ```
+```json
+{
+  "name": "Summer Trip 2026",
+  "categoryName": "Travel",
+  "note": "Team summer outing",
+  "startDate": "2026-08-01",
+  "endDate": "2026-08-05"
+}
+```
 
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `name` | string | ✅ | Group name, max 150 characters |
-| `categoryId` | integer | ❌ | Group category ID |
+| `categoryId` | integer | ❌ | Pick an existing category by ID. 404 if it doesn't exist. Mutually exclusive with `categoryName` |
+| `categoryName` | string | ❌ | Pick a category by name — case-insensitive match against an existing category, or **auto-created** if none matches. Mutually exclusive with `categoryId` |
 | `note` | string | ❌ | Group note |
 | `startDate` | date | ❌ | Start date (`YYYY-MM-DD`) |
 | `endDate` | date | ❌ | End date (`YYYY-MM-DD`) |
+
+> Sending both `categoryId` and `categoryName` in the same request is a `400 Bad Request`.
+>
+> Not sure what category to pick? Call `POST /groups/suggest-category` below first, then drop its response straight into this request.
 
 ### Response `201 Created`
 ```json
@@ -45,6 +60,48 @@
   }
 }
 ```
+
+---
+
+## POST `/groups/suggest-category` — Suggest a category for a new group (AI)
+
+**Auth required**: ✅ Bearer Token
+
+> Sends the group's name/note to Google Gemini and suggests a category. **Nothing is persisted** — the response is shaped like the category fields of `POST /groups` above, so the client pre-fills its "create group" form and the user reviews/edits before actually creating the group.
+
+### Request Body
+```json
+{
+  "name": "Summer Trip 2026",
+  "note": "Team summer outing, hotel + flights"
+}
+```
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `name` | string | ✅ | Group name, max 150 characters |
+| `note` | string | ❌ | Group note — extra context for the suggestion |
+
+### Response `200 OK`
+
+Either an existing category matched:
+```json
+{
+  "status": 200,
+  "message": "Category suggestion generated successfully",
+  "data": { "categoryId": 3, "categoryName": null }
+}
+```
+...or none fit well, so a new name is proposed (not yet created — it's created only if you go on to send this `categoryName` to `POST /groups`):
+```json
+{
+  "status": 200,
+  "message": "Category suggestion generated successfully",
+  "data": { "categoryId": null, "categoryName": "Người thân" }
+}
+```
+
+> `503 Service Unavailable` if the AI call fails.
 
 ---
 
@@ -125,7 +182,7 @@
 }
 ```
 
-> Only include the fields you want to change (partial update).
+> Only include the fields you want to change (partial update). To change the category, send `categoryId` or `categoryName` — same rules as create (see above), mutually exclusive.
 
 ### Response `200 OK`
 ```json

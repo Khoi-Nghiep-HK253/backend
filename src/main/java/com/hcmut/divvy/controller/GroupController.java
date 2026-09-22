@@ -2,9 +2,12 @@ package com.hcmut.divvy.controller;
 
 import com.hcmut.divvy.common.dto.ApiResponse;
 import com.hcmut.divvy.dto.request.CreateGroupRequest;
+import com.hcmut.divvy.dto.request.SuggestGroupCategoryRequest;
 import com.hcmut.divvy.dto.request.UpdateGroupRequest;
 import com.hcmut.divvy.dto.response.GroupResponse;
+import com.hcmut.divvy.dto.response.SuggestCategoryResponse;
 import com.hcmut.divvy.mapper.GroupMapper;
+import com.hcmut.divvy.service.GroupCategorySuggestionService;
 import com.hcmut.divvy.service.GroupService;
 import com.hcmut.divvy.service.model.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,15 +30,16 @@ import org.springframework.web.bind.annotation.*;
 public class GroupController {
 
     private final GroupService groupService;
+    private final GroupCategorySuggestionService groupCategorySuggestionService;
     private final GroupMapper groupMapper;
 
     /**
      * Create a new expense group.
      * <p>
      * The creator is automatically added to the group with the {@code OWNER} role.
-     * {@code categoryId} is optional.
+     * {@code categoryId} (existing category) and {@code categoryName} (find-or-create) are optional and mutually exclusive; sending both is a 400.
      *
-     * @param request        group payload (name, note, categoryId, startDate,
+     * @param request        group payload (name, note, categoryId/categoryName, startDate,
      *                       endDate)
      * @param authentication the currently authenticated user (will become the
      *                       OWNER)
@@ -50,6 +54,29 @@ public class GroupController {
         GroupResponse group = groupService.create(model);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.created(group, "Group created successfully"));
+    }
+
+    /**
+     * Suggest a category for a not-yet-created group using AI, based on its name and
+     * note.
+     * <p>
+     * Nothing is persisted by this call. The response is shaped like
+     * {@code CreateGroupRequest}'s category fields — {@code categoryId} when an
+     * existing category fits, otherwise {@code categoryName} with a proposed new
+     * name — so the client can drop it straight into the "create group" form for
+     * the user to review, then submit the normal {@code POST /api/groups}.
+     *
+     * @param request group name and optional note to base the suggestion on
+     * @return {@code 200 OK} with SuggestCategoryResponse;
+     *         {@code 503} if the AI call fails
+     */
+    @PostMapping("/suggest-category")
+    @Operation(summary = "Suggest a category for a new group using AI")
+    public ResponseEntity<ApiResponse<SuggestCategoryResponse>> suggestCategory(
+            @Valid @RequestBody SuggestGroupCategoryRequest request) {
+        SuggestGroupCategoryModel model = groupMapper.toSuggestGroupCategoryModel(request);
+        SuggestCategoryResponse suggestion = groupCategorySuggestionService.suggest(model);
+        return ResponseEntity.ok(ApiResponse.ok(suggestion, "Category suggestion generated successfully"));
     }
 
     /**
@@ -104,7 +131,7 @@ public class GroupController {
      * {@code BeanMapping(nullValuePropertyMappingStrategy = IGNORE)}).
      *
      * @param groupId        the group's ID
-     * @param request        fields to update (name, note, categoryId, startDate,
+     * @param request        fields to update (name, note, categoryId/categoryName, startDate,
      *                       endDate)
      * @param authentication the currently authenticated user (must be OWNER)
      * @return {@code 200 OK} with the updated GroupResponse;

@@ -12,6 +12,7 @@ public class CreateGroupModel {
     private String name;
     private String note;
     private Integer categoryId;
+    private String categoryName;
     private LocalDate startDate;
     private LocalDate endDate;
     private String currentUsername;

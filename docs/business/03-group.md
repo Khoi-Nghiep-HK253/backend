@@ -27,8 +27,11 @@ Authorization: Bearer <token>
 ```
 1. Lấy username từ JWT → tìm User (creator)
    → Không tìm thấy → 404 NOT_FOUND
-2. Nếu categoryId != null → tìm Category
-   → Không tìm thấy → 404 NOT_FOUND
+2. Xác định category — có 2 chế độ, gửi cả hai cùng lúc → 400 BAD_REQUEST:
+   a. categoryId != null → tìm Category theo id → Không tìm thấy → 404 NOT_FOUND
+   b. categoryName != null/blank → tìm Category theo tên (không phân biệt hoa/thường)
+      → Không tìm thấy → tự động tạo Category mới với tên đó (không báo lỗi)
+   c. Cả hai đều null/blank → group không có category
 3. Map CreateGroupRequest + creator + category → Group entity (MapStruct)
 4. Lưu Group vào DB
 5. Tạo GroupMember { group, user=creator, role=OWNER } → lưu vào DB
@@ -38,7 +41,37 @@ Authorization: Bearer <token>
 ### Quy Tắc
 
 - Người tạo nhóm tự động trở thành **OWNER** duy nhất ban đầu.
-- `categoryId` là tùy chọn (có thể null).
+- Category là tùy chọn (có thể bỏ trống). Chọn một trong hai chế độ:
+  - `categoryId` — chọn category có sẵn, không tồn tại thì báo lỗi 404 (giống các API khác trong hệ thống).
+  - `categoryName` — chế độ tự động: có tên rồi thì dùng, chưa có thì tự tạo mới, không bao giờ báo lỗi 404.
+  - Gửi cả hai field cùng lúc → 400 BAD_REQUEST ("Provide either categoryId or categoryName, not both.").
+
+---
+
+## API 1.5 — Gợi Ý Category Bằng AI (Preview, Không Lưu)
+
+```
+POST /api/groups/suggest-category
+Authorization: Bearer <token>
+```
+
+### Luồng Nghiệp Vụ
+
+```
+1. Lấy toàn bộ Category hiện có trong DB
+2. Gửi tên các category đó + name/note của group cho Gemini (ChatClient, structured output)
+   → AI chọn 1 tên category có sẵn phù hợp nhất, hoặc đề xuất tên mới nếu không cái nào hợp
+3. Đối chiếu tên AI trả về với danh sách Category (không phân biệt hoa/thường):
+   a. Khớp → trả về { categoryId, categoryName: null }
+   b. Không khớp → trả về { categoryId: null, categoryName: "<tên đề xuất>" }
+4. Không lưu gì vào DB ở bước này
+```
+
+### Quy Tắc
+
+- Đây chỉ là gợi ý — client tự quyết định dùng hay sửa, rồi gửi `categoryId`/`categoryName` (tương ứng) sang `POST /api/groups` như bình thường.
+- Response được thiết kế đúng hình dạng field của `CreateGroupRequest` để client gắn thẳng vào form, không cần map lại.
+- Gọi AI thất bại (lỗi mạng, quota, timeout...) → 503 SERVICE_UNAVAILABLE.
 
 ---
 
@@ -99,7 +132,7 @@ Authorization: Bearer <token>
 3. Tìm GroupMember của User trong Group
 4. Kiểm tra quyền OWNER:
    → Không phải OWNER → 403 FORBIDDEN "Only group owners can perform this action."
-5. Nếu categoryId mới != null → tìm Category mới
+5. Xác định category mới (cùng quy tắc 2 chế độ như lúc tạo — xem API 1)
 6. Cập nhật Group bằng MapStruct (BeanMapping IGNORE_NULL):
    → Chỉ các trường được gửi mới được cập nhật
 7. Lưu Group, trả về GroupResponse cập nhật

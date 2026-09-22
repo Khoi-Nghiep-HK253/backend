@@ -29,4 +29,16 @@ public class GroupValidator {
             throw new BusinessException("Only group admins can perform this action.", HttpStatus.FORBIDDEN);
         }
     }
+
+    /**
+     * A group's category is picked one of two ways: an existing category by
+     * {@code categoryId}, or a name to find-or-create via {@code categoryName}.
+     * Sending both is ambiguous and rejected.
+     */
+    public void validateCategorySelection(Integer categoryId, String categoryName) {
+        if (categoryId != null && categoryName != null && !categoryName.isBlank()) {
+            throw new BusinessException("Provide either categoryId or categoryName, not both.",
+                    HttpStatus.BAD_REQUEST);
+        }
+    }
 }

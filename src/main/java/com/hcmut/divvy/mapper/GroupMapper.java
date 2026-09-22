@@ -1,8 +1,10 @@
 package com.hcmut.divvy.mapper;
 
 import com.hcmut.divvy.dto.request.CreateGroupRequest;
+import com.hcmut.divvy.dto.request.SuggestGroupCategoryRequest;
 import com.hcmut.divvy.dto.request.UpdateGroupRequest;
 import com.hcmut.divvy.dto.response.GroupResponse;
+import com.hcmut.divvy.dto.response.SuggestCategoryResponse;
 import com.hcmut.divvy.entity.Category;
 import com.hcmut.divvy.entity.Group;
 import com.hcmut.divvy.entity.User;
@@ -39,6 +41,19 @@ public interface GroupMapper {
                 .groupId(groupId)
                 .currentUsername(currentUsername)
                 .build();
+    }
+
+    SuggestGroupCategoryModel toSuggestGroupCategoryModel(SuggestGroupCategoryRequest request);
+
+    /**
+     * {@code matched} is an existing category the suggestion resolved to; when null,
+     * {@code suggestedName} is a brand-new category name (not yet persisted).
+     */
+    default SuggestCategoryResponse toSuggestCategoryResponse(Category matched, String suggestedName) {
+        if (matched != null) {
+            return SuggestCategoryResponse.builder().categoryId(matched.getId()).build();
+        }
+        return SuggestCategoryResponse.builder().categoryName(suggestedName).build();
     }
 
     @Mapping(target = "id", ignore = true)
